@@ -426,7 +426,7 @@
                                     <i data-lucide="activity" class="w-6 h-6"></i>
                                 </div>
                             </div>
-                            <h3 class="text-gray-500 font-medium mb-1">Công suất đang dùng</h3>
+                            <h3 class="text-gray-500 font-medium mb-1">Công suất hôm nay</h3>
                             <div class="flex items-baseline space-x-1">
                                 <span class="text-3xl font-bold text-gray-800" id="stat-power">0.00</span>
                                 <span class="text-gray-500 font-medium">kW</span>
@@ -434,22 +434,7 @@
                             <p class="text-sm text-gray-400 mt-2" id="stat-active-devices">0 thiết bị đang bật</p>
                         </div>
                         <!-- Card 2: Tiền điện hôm nay -->
-                        <div
-                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50">
-                            </div>
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                                    <i data-lucide="zap" class="w-6 h-6"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-gray-500 font-medium mb-1">Chi phí hôm nay</h3>
-                            <div class="flex items-baseline space-x-1 mb-1">
-                                <span class="text-3xl font-bold text-gray-800" id="stat-kwh">0.0</span>
-                                <span class="text-gray-500 font-medium">kWh</span>
-                            </div>
-                            <p class="text-lg font-semibold text-blue-600" id="stat-cost-today">0 ₫</p>
-                        </div>
+
                         <!-- Card 3: Tháng này -->
                         <div
                             class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white">
@@ -457,17 +442,12 @@
                                 <div class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm">
                                     <i data-lucide="calendar" class="w-6 h-6"></i>
                                 </div>
-                                <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md">Tháng
-                                    này</span>
+                                <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md">Hôm nay</span>
                             </div>
                             <h3 class="text-slate-300 font-medium mb-1">Tổng tiền dự kiến</h3>
                             <div class="flex items-baseline space-x-1 mb-1">
                                 <span class="text-3xl font-bold text-white" id="stat-cost-month">0 ₫</span>
                             </div>
-                            <div class="w-full bg-slate-700 rounded-full h-1.5 mt-auto mb-1">
-                                <div class="bg-blue-400 h-1.5 rounded-full" style="width: 65%"></div>
-                            </div>
-                            <p class="text-xs text-slate-400">Đã đạt 65% định mức</p>
                         </div>
                     </div>
                 </section>
@@ -488,6 +468,27 @@
                     </div>
                 </section>
 
+            </div>
+            <!-- Modal Chi tiết thiết bị -->
+            <div id="device-detail-modal"
+                 class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+
+                <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
+                    <h3 class="text-lg font-bold mb-4">Thông tin thiết bị</h3>
+
+                    <div class="space-y-2 text-gray-700">
+                        <p><strong>Tên:</strong> <span id="detail-name"></span></p>
+                        <p><strong>Phòng:</strong> <span id="detail-room"></span></p>
+                        <p><strong>Công suất:</strong> <span id="detail-power"></span> W</p>
+                        <p><strong>Giờ sử dụng:</strong> <span id="detail-hours"></span> giờ</p>
+                        <p><strong>Trạng thái:</strong> <span id="detail-status"></span></p>
+                    </div>
+
+                    <button onclick="closeDeviceDetail()"
+                            class="mt-5 w-full py-2 bg-blue-600 text-white rounded-xl">
+                        Đóng
+                    </button>
+                </div>
             </div>
 
             <!-- FAB (Thêm thiết bị) -->
@@ -539,6 +540,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Công suất (Watt)</label>
                             <input type="number" id="new-device-power" required min="1" placeholder="VD: 55"
                                 class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian dùng (giờ)</label>
+                            <input type="number" id="new-device-hours" required min="1" placeholder="VD: 1"
+                                   class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div class="pt-4 flex space-x-3">
                             <button type="button" onclick="closeAddModal()"
@@ -686,16 +692,31 @@
                 switchAuthForm('login-form');
             }, 500);
         }
+        //xem thiet bi
+
+        function openDeviceDetail(id) {
+            const device = devices.find(d => d.id === id);
+            if (!device) return;
+
+            document.getElementById('detail-name').innerText = device.name;
+            document.getElementById('detail-room').innerText = device.room;
+            document.getElementById('detail-power').innerText = device.powerW;
+            document.getElementById('detail-hours').innerText = device.hours;
+            document.getElementById('detail-status').innerText = device.isOn ? 'Đang bật' : 'Đã tắt';
+
+            document.getElementById('device-detail-modal').classList.remove('hidden');
+        }
+
+        function closeDeviceDetail() {
+            document.getElementById('device-detail-modal').classList.add('hidden');
+        }
 
         // --- 2. XỬ LÝ DASHBOARD SMARTHOME ---
         const ELECTRICITY_RATE = 2500; // VNĐ/kWh
         let isEditMode = false;
 
         let devices = [
-            { id: 1, name: 'Đèn phòng khách', room: 'Phòng khách', type: 'light', isOn: true, powerW: 15 },
-            { id: 2, name: 'Điều hoà Inverter', room: 'Phòng ngủ', type: 'ac', isOn: false, powerW: 1200 },
-            { id: 3, name: 'Tivi Thông minh', room: 'Phòng khách', type: 'tv', isOn: true, powerW: 150 },
-            { id: 4, name: 'Tủ lạnh Side-by-side', room: 'Bếp', type: 'fridge', isOn: true, powerW: 180 },
+
         ];
 
         const articles = [
@@ -739,39 +760,59 @@
                 else if (device.type === 'tv') iconName = 'tv';
                 else if (device.type === 'fridge') iconName = 'thermometer';
 
-                const bgClass = device.isOn ? 'bg-white border-blue-100 shadow-md shadow-blue-50/50' : 'bg-gray-50 border-gray-100 shadow-sm';
-                const iconBgClass = device.isOn ? 'bg-blue-50 text-blue-500' : 'bg-white text-gray-400 border border-gray-100';
+                const bgClass = device.isOn
+                    ? 'bg-white border-blue-100 shadow-md shadow-blue-50/50'
+                    : 'bg-gray-50 border-gray-100 shadow-sm';
+
+                const iconBgClass = device.isOn
+                    ? 'bg-blue-50 text-blue-500'
+                    : 'bg-white text-gray-400 border border-gray-100';
 
                 return `
-                    <div class="relative p-5 rounded-2xl border transition-all duration-200 ${bgClass}">
-                        ${isEditMode ? `
-                            <button onclick="deleteDevice(${device.id})" class="absolute -top-2 -right-2 w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white shadow-sm z-10">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            </button>
-                        ` : ''}
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="p-3 rounded-full ${iconBgClass}">
-                                <i data-lucide="${iconName}" class="w-6 h-6"></i>
-                            </div>
-                            <label class="flex items-center cursor-pointer">
-                                <div class="relative">
-                                    <input type="checkbox" class="sr-only toggle-checkbox" onchange="toggleDevice(${device.id})" ${device.isOn ? 'checked' : ''}>
-                                    <div class="toggle-label block w-12 h-7 rounded-full bg-gray-300 transition-colors duration-300">
-                                        <div class="toggle-circle absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300"></div>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-base mb-1 ${device.isOn ? 'text-gray-800' : 'text-gray-500'}">${device.name}</h3>
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-gray-400">${device.room}</span>
-                                <span class="font-medium ${device.isOn ? 'text-amber-500' : 'text-gray-400'}">${device.isOn ? device.powerW + 'W' : 'Tắt'}</span>
-                            </div>
-                        </div>
+            <div onclick="openDeviceDetail(${device.id})"
+                 class="relative p-5 rounded-2xl border transition-all duration-200 ${bgClass} cursor-pointer hover:scale-[1.02]">
+
+                ${isEditMode ? `
+                    <button onclick="event.stopPropagation(); deleteDevice(${device.id})"
+                        class="absolute -top-2 -right-2 w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white shadow-sm z-10">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                ` : ''}
+
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 rounded-full ${iconBgClass}">
+                        <i data-lucide="${iconName}" class="w-6 h-6"></i>
                     </div>
-                `;
+
+                    <label class="flex items-center cursor-pointer">
+                        <div class="relative">
+                            <input type="checkbox"
+                                   onclick="event.stopPropagation()"
+                                   class="sr-only toggle-checkbox"
+                                   onchange="toggleDevice(${device.id})"
+                                   ${device.isOn ? 'checked' : ''}>
+                            <div class="toggle-label block w-12 h-7 rounded-full bg-gray-300 transition-colors duration-300">
+                                <div class="toggle-circle absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300"></div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-base mb-1 ${device.isOn ? 'text-gray-800' : 'text-gray-500'}">
+                        ${device.name}
+                    </h3>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-400">${device.room}</span>
+                        <span class="font-medium ${device.isOn ? 'text-amber-500' : 'text-gray-400'}">
+                            ${device.isOn ? device.powerW + 'W' : 'Tắt'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
             }).join('');
+
             lucide.createIcons();
             updateStats();
         }
@@ -802,22 +843,49 @@
         }
 
         function updateStats() {
-            const currentPowerW = devices.reduce((sum, d) => d.isOn ? sum + d.powerW : sum, 0);
-            const activeCount = devices.filter(d => d.isOn).length;
+            const formatMoney = (n) =>
+                new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                }).format(n);
 
-            // Giả lập tính toán
-            const baseKwh = 4.5;
-            const currentKwh = baseKwh + (currentPowerW * 4 / 1000);
-            const todayCost = currentKwh * ELECTRICITY_RATE;
-            const monthlyCost = (185.5 + currentKwh) * ELECTRICITY_RATE;
+            let totalPowerW = 0;
+            let totalKwh = 0;
+            let activeCount = 0;
 
-            const formatMoney = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+            devices.forEach(d => {
+                const power = Number(d.powerW) || 0;
+                const hours = Number(d.hours) || 0;
 
-            document.getElementById('stat-power').innerText = (currentPowerW / 1000).toFixed(2);
-            document.getElementById('stat-active-devices').innerText = `${activeCount} thiết bị đang bật`;
-            document.getElementById('stat-kwh').innerText = currentKwh.toFixed(1);
-            document.getElementById('stat-cost-today').innerText = formatMoney(todayCost);
-            document.getElementById('stat-cost-month').innerText = formatMoney(monthlyCost);
+                // chỉ tính khi bật thiết bị
+                if (d.isOn) {
+                    totalPowerW += power;
+                    activeCount++;
+
+                    // tính điện theo giờ (kể cả = 0 vẫn không lỗi)
+                    const kwh = (power * hours) / 1000;
+                    totalKwh += kwh;
+                }
+            });
+
+            const todayCost = totalKwh * ELECTRICITY_RATE;
+            const monthlyCost = todayCost * 30;
+
+            // cập nhật UI (có kiểm tra tồn tại để tránh crash)
+            document.getElementById('stat-power') &&
+            (document.getElementById('stat-power').innerText = (totalPowerW / 1000).toFixed(2));
+
+            document.getElementById('stat-active-devices') &&
+            (document.getElementById('stat-active-devices').innerText = `${activeCount} thiết bị`);
+
+            document.getElementById('stat-kwh') &&
+            (document.getElementById('stat-kwh').innerText = totalKwh.toFixed(2));
+
+            document.getElementById('stat-cost-today') &&
+            (document.getElementById('stat-cost-today').innerText = formatMoney(todayCost));
+
+            document.getElementById('stat-cost-month') &&
+            (document.getElementById('stat-cost-month').innerText = formatMoney(monthlyCost));
         }
 
         // Logic Thêm Thiết bị (Modal)
@@ -834,19 +902,25 @@
             const room = document.getElementById('new-device-room').value;
             const type = document.getElementById('new-device-type').value;
             const powerW = document.getElementById('new-device-power').value;
+            const hours = document.getElementById('new-device-hours').value; // ✅ thêm dòng này
 
             if (name && powerW) {
                 devices.push({
                     id: Date.now(),
-                    name, room, type,
+                    name,
+                    room,
+                    type,
                     isOn: false,
-                    powerW: Number(powerW)
+                    powerW: Number(powerW),
+                    hours: Number(hours) || 0 // ✅ giờ đúng rồi
                 });
+
                 closeAddModal();
 
-                // Reset form
+                // reset
                 document.getElementById('new-device-name').value = '';
                 document.getElementById('new-device-power').value = '';
+                document.getElementById('new-device-hours').value = ''; // thêm
 
                 renderDevices();
             }
