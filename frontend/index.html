@@ -246,7 +246,12 @@
                     </div>
                     <div class="form-group">
                         <label>Mật khẩu</label>
-                        <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
+                        <div style="position: relative;">
+                            <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
+                            <i class="fa-solid fa-eye toggle-password"
+                               onclick="togglePassword('login-password', this)"
+                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                        </div>
                     </div>
                     <button type="submit" class="btn-auth">Đăng nhập</button>
                     <div class="links">
@@ -269,12 +274,22 @@
                     </div>
                     <div class="form-group">
                         <label>Mật khẩu</label>
-                        <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
+                        <div style="position: relative;">
+                            <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
+                            <i class="fa-solid fa-eye toggle-password"
+                               onclick="togglePassword('register-password', this)"
+                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                        </div>
 
                     </div>
                     <div class="form-group">
                         <label>Xác nhận mật khẩu</label>
-                        <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
+                        <div style="position: relative;">
+                            <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
+                            <i class="fa-solid fa-eye toggle-password"
+                               onclick="togglePassword('register-confirm', this)"
+                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                        </div>
                     </div>
                     <button type="submit" class="btn-auth">Đăng ký</button>
                     <div class="links text-center">
@@ -835,6 +850,19 @@
                 document.getElementById('new-device-power').value = '';
 
                 renderDevices();
+            }
+        }
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
             }
         }
 
