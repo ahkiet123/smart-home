@@ -1,0 +1,22 @@
+package fit.nlu.dapm.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "notifications")
+@Getter
+@Setter
+public class Notification extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(columnDefinition = "TEXT")
+    private String message;
+
+    @Column(name = "is_read")
+    private Boolean isRead = false;
+}

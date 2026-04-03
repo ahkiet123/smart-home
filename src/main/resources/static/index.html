@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Xác thực</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset & Thiết lập cơ bản */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            /* Nền Gradient hiện đại */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Khối chứa Form chính */
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); /* Hiệu ứng kính mờ */
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #f4f7f6;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #2d3748;
+            transition: all 0.3s ease;
+        }
+
+        /* Hiệu ứng khi focus vào ô nhập liệu */
+        .form-group input:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
+
+        /* Nút bấm (Button) */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+            margin-top: 10px;
+        }
+
+        /* Hiệu ứng khi di chuột qua nút */
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Các đường link */
+        .links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .text-center {
+            text-align: center;
+            justify-content: center;
+        }
+
+        p.subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        /* Ẩn các form mặc định */
+        .auth-form {
+            display: none;
+        }
+        
+        /* Hiển thị form đang active kèm Animation */
+        .auth-form.active {
+            display: block;
+            animation: slideUpFade 0.5s ease forwards;
+        }
+
+        @keyframes slideUpFade {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        /* Chỉnh riêng cho ô nhập OTP */
+        .otp-input {
+            text-align: center;
+            font-size: 24px !important;
+            letter-spacing: 8px;
+            font-weight: 600;
+            padding: 15px !important;
+        }
+        .otp-input::placeholder {
+            letter-spacing: 4px;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        
+        <div id="login-form" class="auth-form active">
+            <h2>Đăng Nhập</h2>
+            <form id="form-login" onsubmit="event.preventDefault(); doLogin();">
+                <div class="form-group">
+                    <label>Email hoặc Tên đăng nhập</label>
+                    <input type="email" id="login-email" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
+                </div>
+                <button type="submit" class="btn">Đăng nhập</button>
+                <div class="links">
+                    <a onclick="switchForm('forgot-password-form')">Quên mật khẩu?</a>
+                    <a onclick="switchForm('register-form')">Đăng ký ngay</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="register-form" class="auth-form">
+            <h2>Tạo Tài Khoản</h2>
+            <form id="form-register" onsubmit="event.preventDefault(); doRegister();">
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <input type="text" id="register-fullname" required placeholder="Nguyễn Văn A">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="register-email" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="register-password" required placeholder="Tạo mật khẩu (tối thiểu 6 ký tự)">
+                </div>
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu</label>
+                    <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
+                </div>
+                <button type="submit" class="btn">Đăng ký</button>
+                <div class="links text-center">
+                    <a onclick="switchForm('login-form')">Đã có tài khoản? Đăng nhập</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="forgot-password-form" class="auth-form">
+            <h2>Quên Mật Khẩu</h2>
+            <p class="subtitle">
+                Đừng lo lắng! Hãy nhập email bạn đã đăng ký, chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.
+            </p>
+            <form id="form-forgot" onsubmit="event.preventDefault(); switchForm('otp-form');">
+                <div class="form-group">
+                    <label>Email của bạn</label>
+                    <input type="email" id="forgot-email" required placeholder="example@email.com">
+                </div>
+                <button type="submit" class="btn">Gửi mã OTP</button>
+                <div class="links text-center">
+                    <a onclick="switchForm('login-form')">Quay lại Đăng nhập</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="otp-form" class="auth-form">
+            <h2>Xác Thực OTP</h2>
+            <p class="subtitle">
+                Vui lòng nhập mã gồm 6 chữ số vừa được gửi đến email của bạn.
+            </p>
+            <form id="form-otp" onsubmit="event.preventDefault(); /* doOTP(); */">
+                <div class="form-group">
+                    <label style="text-align: center;">Nhập mã bảo mật</label>
+                    <input type="text" id="otp-code" class="otp-input" required maxlength="6" placeholder="------">
+                </div>
+                <button type="submit" class="btn">Xác nhận</button>
+                <div class="links text-center">
+                    <a onclick="switchForm('login-form')">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        function switchForm(formId) {
+            const forms = document.querySelectorAll('.auth-form');
+            forms.forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(formId).classList.add('active');
+        }
+
+        async function doLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Đăng nhập thành công!');
+                    // Lưu JWT token (nếu backend trả về)
+                    if (result.data && result.data.token) {
+                        localStorage.setItem('token', result.data.token);
+                    }
+                    console.log(result);
+                    // location.href = '/dashboard.html'; // Chuyển hướng
+                } else {
+                    alert('Đăng nhập thất bại: ' + (result.message || 'Sai thông tin'));
+                }
+            } catch (error) {
+                alert('Lỗi kết nối tới máy chủ');
+                console.error(error);
+            }
+        }
+
+        async function doRegister() {
+            const fullName = document.getElementById('register-fullname').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm').value;
+
+            if (password !== confirmPassword) {
+                alert('Mật khẩu xác nhận không khớp!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullName, email, password })
+                });
+                const result = await response.json();
+                
+                if (response.ok || response.status === 201) {
+                    alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                    switchForm('login-form');
+                } else {
+                    alert('Đăng ký thất bại: ' + (result.message || 'Lỗi hệ thống'));
+                }
+            } catch (error) {
+                alert('Lỗi kết nối tới máy chủ');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
