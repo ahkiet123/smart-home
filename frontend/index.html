@@ -270,7 +270,7 @@
                     <div class="form-group">
                         <label>Mật khẩu</label>
                         <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
-                        
+
                     </div>
                     <div class="form-group">
                         <label>Xác nhận mật khẩu</label>
@@ -597,7 +597,7 @@
 
                 const result = await parseApiResponse(response);
                 if (!response.ok) {
-                    alert('Đăng nhập thất bại: ' + (result.message || 'Sai thông tin'));
+                    alert(result.message || 'Đăng nhập thất bại');
                     return;
                 }
 
