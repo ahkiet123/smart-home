@@ -3,9 +3,11 @@ package fit.nlu.dapm.service;
 import fit.nlu.dapm.dto.auth.AuthResponse;
 import fit.nlu.dapm.dto.auth.LoginRequest;
 import fit.nlu.dapm.dto.auth.RegisterRequest;
+import fit.nlu.dapm.entity.PasswordResetOTP;
 import fit.nlu.dapm.entity.Role;
 import fit.nlu.dapm.entity.User;
 import fit.nlu.dapm.exception.BadRequestException;
+import fit.nlu.dapm.repository.PasswordResetOTPRepository;
 import fit.nlu.dapm.repository.RoleRepository;
 import fit.nlu.dapm.repository.UserRepository;
 import fit.nlu.dapm.security.JwtTokenProvider;
@@ -17,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
@@ -35,6 +39,12 @@ public class AuthService {
 
     @Autowired
     private JwtTokenProvider tokenProvider;
+
+    @Autowired
+    private PasswordResetOTPRepository otpRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public AuthResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -71,4 +81,34 @@ public class AuthService {
 
         userRepository.save(user);
     }
+    // Gửi otp
+    @Transactional
+    public void sendOTP(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Email not found"));
+
+        String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
+
+        otpRepository.deleteByEmail(email);
+
+        PasswordResetOTP otpEntity = new PasswordResetOTP();
+        otpEntity.setEmail(email);
+        otpEntity.setOtp(otp);
+        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+
+        otpRepository.save(otpEntity);
+
+        emailService.sendOTP(email, otp);
+    }
+    //verify
+    @Transactional
+    public void verifyOTP(String email, String otp) {
+        PasswordResetOTP otpEntity = otpRepository.findByEmailAndOtp(email, otp)
+                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
+
+        if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("OTP expired");
+        }
+    }
 }
+
