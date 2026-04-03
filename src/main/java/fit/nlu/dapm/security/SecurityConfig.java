@@ -51,6 +51,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             );
+
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
         return http.build();
