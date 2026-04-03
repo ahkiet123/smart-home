@@ -10,7 +10,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class ErrorDetails {
     private LocalDateTime timestamp;
@@ -22,5 +21,12 @@ public class ErrorDetails {
         this.timestamp = timestamp;
         this.status = status;
         this.message = message;
+    }
+
+    public ErrorDetails(LocalDateTime timestamp, String status, String message, List<String> errors) {
+        this.timestamp = timestamp;
+        this.status = status;
+        this.message = message;
+        this.errors = errors;
     }
 }
