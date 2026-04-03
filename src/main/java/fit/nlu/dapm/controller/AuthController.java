@@ -2,6 +2,8 @@ package fit.nlu.dapm.controller;
 
 import fit.nlu.dapm.dto.ApiResponse;
 import fit.nlu.dapm.dto.auth.*;
+import fit.nlu.dapm.exception.BadRequestException;
+import fit.nlu.dapm.security.SecurityUtil;
 import fit.nlu.dapm.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private SecurityUtil securityUtil;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -41,6 +46,17 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> verifyOTP(@RequestBody VerifyOTPRequest request) {
         authService.verifyOTP(request.getEmail(), request.getOtp());
         return ResponseEntity.ok(ApiResponse.success("OTP valid", null));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        Long userId = securityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BadRequestException("Unauthorized");
+        }
+
+        authService.changePassword(userId, request);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
     }
 
 }

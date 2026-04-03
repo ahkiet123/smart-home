@@ -1,12 +1,14 @@
 package fit.nlu.dapm.service;
 
 import fit.nlu.dapm.dto.auth.AuthResponse;
+import fit.nlu.dapm.dto.auth.ChangePasswordRequest;
 import fit.nlu.dapm.dto.auth.LoginRequest;
 import fit.nlu.dapm.dto.auth.RegisterRequest;
 import fit.nlu.dapm.entity.PasswordResetOTP;
 import fit.nlu.dapm.entity.Role;
 import fit.nlu.dapm.entity.User;
 import fit.nlu.dapm.exception.BadRequestException;
+import fit.nlu.dapm.exception.ResourceNotFoundException;
 import fit.nlu.dapm.repository.PasswordResetOTPRepository;
 import fit.nlu.dapm.repository.RoleRepository;
 import fit.nlu.dapm.repository.UserRepository;
@@ -25,6 +27,8 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
+
+    private static final String PASSWORD_POLICY_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{6,}$";
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -90,7 +94,7 @@ public class AuthService {
 
         userRepository.save(user);
     }
-    // Gửi otp
+    // gửi otp
     @Transactional
     public void sendOTP(String email) {
         User user = userRepository.findByEmail(email)
@@ -118,6 +122,27 @@ public class AuthService {
         if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("OTP expired");
         }
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu hiện tại không đúng");
+        }
+
+        if (request.getNewPassword().equals(request.getOldPassword())) {
+            throw new BadRequestException("Mật khẩu mới không được trùng mật khẩu cũ");
+        }
+
+        if (!request.getNewPassword().matches(PASSWORD_POLICY_REGEX)) {
+            throw new BadRequestException("Mật khẩu mới phải có chữ hoa, chữ thường, số, ký tự đặc biệt và tối thiểu 6 ký tự");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }
 
