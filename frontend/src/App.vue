@@ -7,7 +7,7 @@ import ElectricityCalculator from './components/ElectricityCalculator.vue'
     <header class="main-header">
       <div class="header-content">
         <h1>☘️ SMART HOME ENERGY</h1>
-        <div class="sub-text">Hệ thống dự toán năng lượng thông minh - NLU 2026</div>
+        <div class="sub-text"></div>
       </div>
     </header>
 
@@ -18,7 +18,7 @@ import ElectricityCalculator from './components/ElectricityCalculator.vue'
     </main>
 
     <footer class="main-footer">
-      <p>&copy; Nhóm Đồ Án Phát Triển Phần Mềm - Toàn & Cộng sự</p>
+      <p>&copy; Nhóm Đồ Án Phát Triển Phần Mềm </p>
     </footer>
   </div>
 </template>

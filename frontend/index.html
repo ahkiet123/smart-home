@@ -15,6 +15,8 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- bieu do -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -352,12 +354,12 @@
                 <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium">
                     <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Tổng quan
                 </a>
-                <a href="#"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                <a href="#" onclick="showRoomStats()"
+                   class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                     <i data-lucide="home" class="mr-3 w-5 h-5"></i> Phòng ốc
                 </a>
-                <a href="#"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                <a href="#" onclick="showEnergyChart()"
+                   class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                     <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
                 </a>
             </nav>
@@ -413,42 +415,58 @@
                 <section class="mb-10">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-800">Quản lý & Tiêu thụ điện</h2>
-                        <span
-                            class="text-sm font-medium text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full flex items-center">
-                            <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1 text-blue-500"></i> Real-time
-                        </span>
+                        <span class="text-sm font-medium text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full flex items-center">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1 text-blue-500"></i> Nhật ký sử dụng
+        </span>
                     </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Card 1: Công suất -->
-                        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
+
+                        <div onclick="showPowerDetail()" class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col cursor-pointer hover:border-blue-300 transition-all group">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100">
                                     <i data-lucide="activity" class="w-6 h-6"></i>
                                 </div>
+                                <span class="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Xem chi tiết</span>
                             </div>
-                            <h3 class="text-gray-500 font-medium mb-1">Công suất hôm nay</h3>
+                            <h3 class="text-gray-500 font-medium mb-1">Công suất sử dụng</h3>
                             <div class="flex items-baseline space-x-1">
                                 <span class="text-3xl font-bold text-gray-800" id="stat-power">0.00</span>
-                                <span class="text-gray-500 font-medium">kW</span>
+                                <span class="text-gray-500 font-medium text-gray-400">kW</span>
                             </div>
-                            <p class="text-sm text-gray-400 mt-2" id="stat-active-devices">0 thiết bị đang bật</p>
+                            <p class="text-sm text-gray-400 mt-2" id="stat-active-devices">0 thiết bị</p>
                         </div>
-                        <!-- Card 2: Tiền điện hôm nay -->
 
-                        <!-- Card 3: Tháng này -->
-                        <div
-                            class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white">
+                        <div onclick="showTodayDetail()" class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col border-l-4 border-l-blue-500 cursor-pointer hover:border-blue-300 transition-all group">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm">
+                                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100">
+                                    <i data-lucide="zap" class="w-6 h-6"></i>
+                                </div>
+                                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md tracking-wider">Hôm nay</span>
+                            </div>
+                            <h3 class="text-gray-500 font-medium mb-1">Chi phí hôm nay</h3>
+                            <div class="flex flex-col">
+                                <span class="text-3xl font-bold text-gray-800" id="stat-cost-today">0 ₫</span>
+                                <div class="flex items-center text-sm font-medium text-blue-500 mt-1">
+                                    <span id="stat-kwh">0.00</span><span class="ml-1">kWh</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div onclick="showMonthDetail()" class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white cursor-pointer hover:opacity-90 transition-all group">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm group-hover:bg-white/20">
                                     <i data-lucide="calendar" class="w-6 h-6"></i>
                                 </div>
-                                <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md">Hôm nay</span>
+                                <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md tracking-wider">Dự kiến</span>
                             </div>
-                            <h3 class="text-slate-300 font-medium mb-1">Tổng tiền dự kiến</h3>
+                            <h3 class="text-slate-300 font-medium mb-1">Tổng tiền tháng này</h3>
                             <div class="flex items-baseline space-x-1 mb-1">
                                 <span class="text-3xl font-bold text-white" id="stat-cost-month">0 ₫</span>
                             </div>
+                            <p class="text-xs text-slate-400 mt-2 opacity-70 italic">* Click để xem dự báo hóa đơn</p>
                         </div>
+
                     </div>
                 </section>
 
@@ -488,6 +506,74 @@
                             class="mt-5 w-full py-2 bg-blue-600 text-white rounded-xl">
                         Đóng
                     </button>
+                </div>
+            </div>
+
+            <!-- xem chi tiet 3 o dashboard -->
+            <div id="stats-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 id="stats-title" class="font-bold text-xl text-gray-800">Chi tiết</h3>
+                        <button onclick="closeStatsModal()" class="text-gray-400 hover:text-gray-800">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div id="stats-content" class="space-y-4">
+                        </div>
+                        <button onclick="closeStatsModal()" class="mt-8 w-full py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors">
+                            Đã hiểu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- thong ke phong oc -->
+
+            <div id="room-stats-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <h3 class="font-bold text-lg text-gray-800 flex items-center">
+                            <i data-lucide="home" class="w-5 h-5 mr-2 text-green-500"></i> Hiệu suất theo phòng
+                        </h3>
+                        <button onclick="closeRoomModal()" class="text-gray-400 hover:text-gray-800">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="roomBarChart" style="max-height: 300px;"></canvas>
+
+                        <div id="room-details" class="mt-6 space-y-3">
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-50 flex justify-center">
+                        <button onclick="closeRoomModal()" class="text-sm font-bold text-gray-400 hover:text-gray-600">ĐÓNG</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- bieu do thong ke dien -->
+
+            <div id="chart-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-xl text-gray-800 flex items-center">
+                            <i data-lucide="pie-chart" class="w-5 h-5 mr-2 text-blue-500"></i> Thống kê tiêu thụ hôm nay
+                        </h3>
+                        <button onclick="closeChartModal()" class="text-gray-400 hover:text-gray-800">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div class="p-8 flex flex-col items-center">
+                        <div class="w-full max-w-[300px]">
+                            <canvas id="energyPieChart"></canvas>
+                        </div>
+                        <div id="chart-legend" class="mt-6 w-full space-y-2">
+                        </div>
+                    </div>
+                    <div class="p-4 bg-gray-50 text-center">
+                        <button onclick="closeChartModal()" class="text-blue-600 font-bold hover:underline">Đóng thống kê</button>
+                    </div>
                 </div>
             </div>
 
@@ -712,12 +798,32 @@
         }
 
         // --- 2. XỬ LÝ DASHBOARD SMARTHOME ---
+
         const ELECTRICITY_RATE = 2500; // VNĐ/kWh
         let isEditMode = false;
 
         let devices = [
+            // --- PHÒNG KHÁCH ---
+            { id: 101, name: "Đèn chùm phòng khách", room: "Phòng khách", type: "light", powerW: 100, hours: 5, isOn: true },
+            { id: 102, name: "Smart TV 55 inch", room: "Phòng khách", type: "tv", powerW: 150, hours: 4, isOn: false },
+            { id: 103, name: "Máy lạnh (Living)", room: "Phòng khách", type: "ac", powerW: 1200, hours: 3, isOn: true },
 
+            // --- PHÒNG NGỦ  ---
+            { id: 301, name: "Đèn trần PN2", room: "Phòng ngủ ", type: "light", powerW: 40, hours: 2, isOn: true },
+            { id: 302, name: "Quạt treo tường", room: "Phòng ngủ ", type: "ac", powerW: 60, hours: 6, isOn: true },
+
+            // --- PHÒNG BẾP ---
+            { id: 401, name: "Tủ lạnh Inverter", room: "Bếp", type: "fridge", powerW: 150, hours: 24, isOn: true },
+            { id: 402, name: "Lò vi sóng", room: "Bếp", type: "tv", powerW: 1000, hours: 0.5, isOn: false },
+
+            // --- PHÒNG TẮM ---
+            { id: 501, name: "Bình nóng lạnh", room: "Phòng tắm", type: "ac", powerW: 2500, hours: 1, isOn: false },
+            { id: 502, name: "Đèn gương", room: "Phòng tắm", type: "light", powerW: 15, hours: 1, isOn: true }
         ];
+
+
+        // renderDevices();
+        // updateStats();
 
         const articles = [
             { title: '5 mẹo thiết lập máy lạnh tiết kiệm điện', category: 'Mẹo vặt', time: '5 phút', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=400&q=80' },
@@ -843,6 +949,9 @@
         }
 
         function updateStats() {
+            // Đảm bảo hằng số ELECTRICITY_RATE đã được khai báo ở đâu đó trong code
+            const ELECTRICITY_RATE = 2500;
+
             const formatMoney = (n) =>
                 new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
@@ -853,16 +962,17 @@
             let totalKwh = 0;
             let activeCount = 0;
 
+            // Duyệt danh sách thiết bị
             devices.forEach(d => {
                 const power = Number(d.powerW) || 0;
                 const hours = Number(d.hours) || 0;
 
-                // chỉ tính khi bật thiết bị
+                // Chỉ tính khi thiết bị đang ở trạng thái bật (isOn === true)
                 if (d.isOn) {
                     totalPowerW += power;
                     activeCount++;
 
-                    // tính điện theo giờ (kể cả = 0 vẫn không lỗi)
+                    // Tính điện năng tiêu thụ trong 1 ngày: (W * Hours) / 1000
                     const kwh = (power * hours) / 1000;
                     totalKwh += kwh;
                 }
@@ -871,21 +981,95 @@
             const todayCost = totalKwh * ELECTRICITY_RATE;
             const monthlyCost = todayCost * 30;
 
-            // cập nhật UI (có kiểm tra tồn tại để tránh crash)
-            document.getElementById('stat-power') &&
-            (document.getElementById('stat-power').innerText = (totalPowerW / 1000).toFixed(2));
+            // Cập nhật UI (có kiểm tra tồn tại của Element để tránh lỗi JavaScript)
 
-            document.getElementById('stat-active-devices') &&
-            (document.getElementById('stat-active-devices').innerText = `${activeCount} thiết bị`);
+            // 1. Cập nhật Công suất (kW)
+            const powerElement = document.getElementById('stat-power');
+            if (powerElement) powerElement.innerText = (totalPowerW / 1000).toFixed(2);
 
-            document.getElementById('stat-kwh') &&
-            (document.getElementById('stat-kwh').innerText = totalKwh.toFixed(2));
+            // 2. Cập nhật Số lượng thiết bị đang bật
+            const activeDevElement = document.getElementById('stat-active-devices');
+            if (activeDevElement) activeDevElement.innerText = `${activeCount} thiết bị`;
 
-            document.getElementById('stat-cost-today') &&
-            (document.getElementById('stat-cost-today').innerText = formatMoney(todayCost));
+            // 3. Cập nhật Số kWh tiêu thụ
+            const kwhElement = document.getElementById('stat-kwh');
+            if (kwhElement) kwhElement.innerText = totalKwh.toFixed(2);
 
-            document.getElementById('stat-cost-month') &&
-            (document.getElementById('stat-cost-month').innerText = formatMoney(monthlyCost));
+            // 4. Cập nhật Tiền điện Hôm nay
+            const costTodayElement = document.getElementById('stat-cost-today');
+            if (costTodayElement) costTodayElement.innerText = formatMoney(todayCost);
+
+            // 5. Cập nhật Tiền điện Tháng này
+            const costMonthElement = document.getElementById('stat-cost-month');
+            if (costMonthElement) costMonthElement.innerText = formatMoney(monthlyCost);
+        }
+        function openStatsModal(title, contentHtml) {
+            document.getElementById('stats-title').innerText = title;
+            document.getElementById('stats-content').innerHTML = contentHtml;
+            document.getElementById('stats-detail-modal').classList.remove('hidden');
+        }
+
+        function closeStatsModal() {
+            document.getElementById('stats-detail-modal').classList.add('hidden');
+        }
+
+        // 1. Chi tiết Công suất
+        function showPowerDetail() {
+            let activeDevicesList = devices.filter(d => d.isOn);
+            let html = `<p class="text-gray-500 mb-4">Danh sách các thiết bị đang tiêu thụ điện thực tế:</p>`;
+
+            if (activeDevicesList.length === 0) {
+                html += `<div class="p-4 bg-gray-50 rounded-xl text-center text-gray-400">Không có thiết bị nào đang bật</div>`;
+            } else {
+                activeDevicesList.forEach(d => {
+                    html += `
+            <div class="flex justify-between items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+                <span class="font-medium text-gray-700">${d.name}</span>
+                <span class="font-bold text-amber-600">${(d.powerW / 1000).toFixed(2)} kW</span>
+            </div>`;
+                });
+            }
+            openStatsModal("Phân bổ công suất", html);
+        }
+
+        // 2. Chi tiết Chi phí hôm nay
+        function showTodayDetail() {
+            let activeDevicesList = devices.filter(d => d.isOn);
+            let html = `<p class="text-gray-500 mb-4">Số tiền tạm tính dựa trên số giờ sử dụng hôm nay:</p>`;
+
+            activeDevicesList.forEach(d => {
+                let cost = (d.powerW * d.hours / 1000) * 2500;
+                html += `
+        <div class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <div>
+                <div class="font-medium text-gray-700">${d.name}</div>
+                <div class="text-xs text-blue-400">${d.hours} giờ sử dụng</div>
+            </div>
+            <span class="font-bold text-blue-600">${new Intl.NumberFormat('vi-VN').format(cost)} ₫</span>
+        </div>`;
+            });
+            openStatsModal("Chi tiết chi phí hôm nay", html);
+        }
+
+        // 3. Chi tiết Dự toán tháng
+        function showMonthDetail() {
+            const totalToday = devices.filter(d => d.isOn).reduce((sum, d) => sum + ((d.powerW * d.hours / 1000) * 2500), 0);
+            const totalMonth = totalToday * 30;
+
+            let html = `
+    <div class="p-4 bg-slate-800 text-white rounded-2xl mb-4 text-center">
+        <div class="text-slate-400 text-sm">Dự báo hóa đơn tháng này</div>
+        <div class="text-3xl font-bold">${new Intl.NumberFormat('vi-VN').format(totalMonth)} ₫</div>
+    </div>
+    <div class="space-y-3">
+        <div class="flex justify-between text-sm"><span class="text-gray-500">Trung bình/ngày:</span> <span class="font-bold">${new Intl.NumberFormat('vi-VN').format(totalToday)} ₫</span></div>
+        <div class="flex justify-between text-sm"><span class="text-gray-500">Đơn giá điện:</span> <span class="font-bold text-green-600">2.500 ₫ / kWh</span></div>
+        <div class="flex justify-between text-sm"><span class="text-gray-500">Chu kỳ tính:</span> <span class="font-bold">30 ngày</span></div>
+    </div>
+    <p class="text-xs text-gray-400 mt-6 bg-gray-50 p-3 rounded-lg italic">
+        * Lưu ý: Con số này mang tính chất dự báo dựa trên thói quen ghi nhật ký. Hãy tắt các thiết bị khi không sử dụng để giảm hóa đơn.
+    </p>`;
+            openStatsModal("Dự báo tài chính", html);
         }
 
         // Logic Thêm Thiết bị (Modal)
@@ -962,6 +1146,75 @@
                 console.error(error);
             }
         }
+
+        //ve bieu do thong ke dien
+
+        let myChart = null; // Biến lưu trữ đối tượng biểu đồ để xóa/vẽ lại
+
+        function showEnergyChart() {
+            const modal = document.getElementById('chart-modal');
+            modal.classList.remove('hidden');
+
+            // 1. Chuẩn bị dữ liệu từ mảng devices
+            const activeDevices = devices.filter(d => d.isOn && d.powerW > 0);
+            const labels = activeDevices.map(d => d.name);
+            const dataValues = activeDevices.map(d => (d.powerW * d.hours / 1000).toFixed(2)); // Tính kWh
+
+            // Nếu không có thiết bị nào bật, thông báo cho người dùng
+            if (activeDevices.length === 0) {
+                document.getElementById('chart-legend').innerHTML = `<p class="text-center text-gray-400">Chưa có dữ liệu. Hãy bật thiết bị để xem thống kê!</p>`;
+                return;
+            }
+
+            // 2. Xóa biểu đồ cũ nếu đã tồn tại (để tránh lỗi ghi đè)
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            // 3. Vẽ biểu đồ mới
+            const ctx = document.getElementById('energyPieChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut', // Loại biểu đồ tròn (khuyết giữa cho đẹp)
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: [
+                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { display: false } // Tắt chú thích mặc định để tự làm chú thích custom
+                    },
+                    cutout: '70%' // Độ dày của vòng tròn
+                }
+            });
+
+            // 4. Tạo chú thích (Legend) tùy chỉnh bên dưới biểu đồ
+            let legendHtml = '';
+            activeDevices.forEach((d, index) => {
+                const kwh = (d.powerW * d.hours / 1000).toFixed(2);
+                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+                legendHtml += `
+            <div class="flex justify-between items-center text-sm">
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${colors[index % colors.length]}"></span>
+                    <span class="text-gray-600">${d.name}</span>
+                </div>
+                <span class="font-bold text-gray-800">${kwh} kWh</span>
+            </div>
+        `;
+            });
+            document.getElementById('chart-legend').innerHTML = legendHtml;
+        }
+
+        function closeChartModal() {
+            document.getElementById('chart-modal').classList.add('hidden');
+        }
         async function doVerifyOTP() {
             const email = document.getElementById('forgot-email').value;
             const otp = document.getElementById('otp-code').value;
@@ -986,6 +1239,92 @@
                 alert('Lỗi server');
                 console.error(error);
             }
+        }
+
+        //thong ke phong oc
+        let roomChart = null;
+
+        function showRoomStats() {
+            const modal = document.getElementById('room-stats-modal');
+            modal.classList.remove('hidden');
+
+            // 1. Gom nhóm dữ liệu theo phòng
+            const roomData = {};
+            devices.forEach(d => {
+                if (!roomData[d.room]) {
+                    roomData[d.room] = 0;
+                }
+                if (d.isOn) {
+                    // Tính tiền của từng thiết bị trong phòng đó
+                    const cost = (d.powerW * d.hours / 1000) * 2500;
+                    roomData[d.room] += cost;
+                }
+            });
+
+            const labels = Object.keys(roomData);
+            const values = Object.values(roomData);
+
+            // 2. Vẽ biểu đồ cột ngang bằng Chart.js
+            const ctx = document.getElementById('roomBarChart').getContext('2d');
+            if (roomChart) roomChart.destroy();
+
+            roomChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Tiền điện (VNĐ)',
+                        data: values,
+                        backgroundColor: '#10b981', // Màu xanh lá cây cho thân thiện
+                        borderRadius: 8,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Xoay ngang biểu đồ
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { display: false } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 3. Hiển thị text chi tiết bên dưới
+            let detailHtml = '';
+            labels.forEach((room, index) => {
+                detailHtml += `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                <span class="text-sm font-medium text-gray-600">${room}</span>
+                <span class="font-bold text-gray-800">${new Intl.NumberFormat('vi-VN').format(values[index])} ₫</span>
+            </div>
+        `;
+            });
+            document.getElementById('room-details').innerHTML = detailHtml;
+        }
+
+        function closeRoomModal() {
+            document.getElementById('room-stats-modal').classList.add('hidden');
+        }
+
+        //click de out
+        window.onclick = function(event) {
+            // Danh sách các ID của lớp nền (Overlay)
+            const modalOverlays = [
+                'chart-modal',
+                'room-stats-modal',
+                'stats-detail-modal',
+                'device-detail-modal',
+                'add-modal'
+            ];
+
+            modalOverlays.forEach(id => {
+                const modal = document.getElementById(id);
+                // Nếu người dùng click trúng vào đúng cái lớp nền (chứ không phải nội dung bên trong)
+                if (event.target == modal) {
+                    modal.classList.add('hidden');
+                }
+            });
         }
 
         // Khởi tạo icon ban đầu
