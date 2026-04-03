@@ -46,4 +46,32 @@ public class User extends BaseEntity {
     public UserProfile getProfile() { return profile; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void setProfile(UserProfile profile) {
+        this.profile = profile;
+    }
+
+    public List<Home> getHomes() {
+        return homes;
+    }
+
+    public void setHomes(List<Home> homes) {
+        this.homes = homes;
+    }
+
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
+    }
 }
