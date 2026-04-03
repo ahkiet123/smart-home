@@ -248,9 +248,8 @@
                         <label>Mật khẩu</label>
                         <div style="position: relative;">
                             <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
-                            <i class="fa-solid fa-eye toggle-password"
-                               onclick="togglePassword('login-password', this)"
-                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('login-password', this)"
+                                style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
                     </div>
                     <button type="submit" class="btn-auth">Đăng nhập</button>
@@ -277,8 +276,8 @@
                         <div style="position: relative;">
                             <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
                             <i class="fa-solid fa-eye toggle-password"
-                               onclick="togglePassword('register-password', this)"
-                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                                onclick="togglePassword('register-password', this)"
+                                style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
 
                     </div>
@@ -287,8 +286,8 @@
                         <div style="position: relative;">
                             <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
                             <i class="fa-solid fa-eye toggle-password"
-                               onclick="togglePassword('register-confirm', this)"
-                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                                onclick="togglePassword('register-confirm', this)"
+                                style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
                     </div>
                     <button type="submit" class="btn-auth">Đăng ký</button>
@@ -319,7 +318,7 @@
             <div id="otp-form" class="auth-form">
                 <h2>Xác Thực OTP</h2>
                 <p class="subtitle">Vui lòng nhập mã gồm 6 chữ số vừa được gửi đến email của bạn.</p>
-                <form onsubmit="event.preventDefault(); alert('Xác thực thành công!'); switchAuthForm('login-form');">
+                <form onsubmit="event.preventDefault(); doVerifyOTP();">
                     <div class="form-group">
                         <label style="text-align: center;">Nhập mã bảo mật</label>
                         <input type="text" id="otp-code" class="otp-input" required maxlength="6" placeholder="------">
@@ -328,6 +327,24 @@
                     <div class="links text-center">
                         <a onclick="switchAuthForm('login-form')">Hủy bỏ</a>
                     </div>
+                </form>
+            </div>
+
+            <div id="reset-password-form" class="auth-form">
+                <form id="form-reset-password" onsubmit="event.preventDefault(); doResetPassword();">
+
+                    <div class="form-group">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" id="reset-password" required placeholder="Tạo mật khẩu mới">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" id="reset-confirm-password" required placeholder="Nhập lại mật khẩu">
+                    </div>
+
+                    <button type="submit" class="btn-auth">Xác nhận</button>
+
                 </form>
             </div>
 
@@ -877,6 +894,7 @@
                 const result = await response.json();
 
                 if (response.ok) {
+                    localStorage.setItem('resetEmail', email);
                     alert('OTP đã gửi về email!');
                     switchAuthForm('otp-form');
                 } else {
@@ -889,21 +907,21 @@
             }
         }
         async function doVerifyOTP() {
-            const email = document.getElementById('forgot-email').value;
+            const email = localStorage.getItem('resetEmail');
             const otp = document.getElementById('otp-code').value;
 
             try {
                 const response = await fetch('http://localhost:8080/api/v1/auth/verify-otp', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, otp})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
                     alert('OTP đúng!');
-                    showResetForm();
+                    switchAuthForm('reset-password-form');
                 } else {
                     alert('OTP sai hoặc hết hạn');
                 }
@@ -914,6 +932,48 @@
             }
         }
 
+
+        async function doResetPassword() {
+            const email = localStorage.getItem('resetEmail');
+            const password = document.getElementById('reset-password').value;
+            const confirm = document.getElementById('reset-confirm-password').value;
+
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
+            if (!passwordRegex.test(password)) {
+                alert('Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt');
+                return;
+            }
+
+
+            if (password !== confirm) {
+                alert('Mật khẩu không khớp');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        newPassword: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Đổi mật khẩu thành công!');
+                    switchAuthForm('login-form');
+                } else {
+                    alert(result.message || 'Đổi mật khẩu thất bại');
+                }
+
+            } catch (error) {
+                alert('Lỗi server');
+                console.error(error);
+            }
+        }
         // Khởi tạo icon ban đầu
         lucide.createIcons();
     </script>

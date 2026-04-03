@@ -43,4 +43,9 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("OTP valid", null));
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getEmail(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
+    }
 }
