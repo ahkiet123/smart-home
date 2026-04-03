@@ -543,178 +543,99 @@
     <!-- =========================================
      JAVASCRIPT LOGIC
      ========================================= -->
-<<<<<<< HEAD
-<script>
-    // --- 1. XỬ LÝ AUTHENTICATION ---
-    const API_BASE = (window.location.port === '5173' || window.location.port === '4173')
-        ? 'http://localhost:8080/api/v1'
-        : '/api/v1';
-
-    function switchAuthForm(formId) {
-        const forms = document.querySelectorAll('.auth-form');
-        forms.forEach(form => form.classList.remove('active'));
-        document.getElementById(formId).classList.add('active');
-    }
-
-    function openDashboard() {
-        document.getElementById('auth-view').style.display = 'none';
-        const dashboard = document.getElementById('dashboard-view');
-        dashboard.style.display = 'flex';
-        setTimeout(() => dashboard.classList.add('active'), 50);
-        initDashboard();
-    }
-
-    async function doLogin() {
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-
-        try {
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-                alert('Đăng nhập thất bại: ' + (result.message || 'Sai thông tin'));
-                return;
-            }
-
-            if (result.data && result.data.token) {
-                localStorage.setItem('token', result.data.token);
-            }
-
-            alert('Đăng nhập thành công!');
-            openDashboard();
-        } catch (error) {
-            alert('Lỗi kết nối tới máy chủ');
-            console.error(error);
-=======
     <script>
         // --- 1. XỬ LÝ AUTHENTICATION ---
+        const API_BASE = (window.location.port === '5173' || window.location.port === '4173')
+            ? 'http://localhost:8080/api/v1'
+            : '/api/v1';
+
         function switchAuthForm(formId) {
             const forms = document.querySelectorAll('.auth-form');
             forms.forEach(form => form.classList.remove('active'));
             document.getElementById(formId).classList.add('active');
->>>>>>> 5f52b5d3f98d754d89652d1105e98b7ce4dda9e5
         }
 
-<<<<<<< HEAD
-    async function doRegister() {
-        const fullName = document.getElementById('register-fullname').value;
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        const confirmPassword = document.getElementById('register-confirm').value;
-
-        if (password !== confirmPassword) {
-            alert('Mật khẩu xác nhận không khớp!');
-            return;
+        function openDashboard() {
+            document.getElementById('auth-view').style.display = 'none';
+            const dashboard = document.getElementById('dashboard-view');
+            dashboard.style.display = 'flex';
+            setTimeout(() => dashboard.classList.add('active'), 50);
+            initDashboard();
         }
 
-        try {
-            const response = await fetch(`${API_BASE}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fullName, email, password })
-            });
-
-            const result = await response.json();
-            if (!response.ok && response.status !== 201) {
-                alert('Đăng ký thất bại: ' + (result.message || 'Lỗi hệ thống'));
-                return;
-            }
-
-            alert('Đăng ký thành công! Vui lòng đăng nhập.');
-            switchAuthForm('login-form');
-        } catch (error) {
-            alert('Lỗi kết nối tới máy chủ');
-            console.error(error);
-        }
-    }
-
-    function doLogout() {
-        localStorage.removeItem('token');
-        document.getElementById('dashboard-view').classList.remove('active');
-        setTimeout(() => {
-            document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('auth-view').style.display = 'flex';
-            switchAuthForm('login-form');
-        }, 500);
-    }
-=======
         async function doLogin() {
-            // Giả lập Đăng nhập thành công (Bỏ qua fetch API để demo UI)
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
 
-            if (email && password) {
-                // Ẩn UI Đăng nhập, Hiện UI Dashboard
-                document.getElementById('auth-view').style.display = 'none';
-                const dashboard = document.getElementById('dashboard-view');
-                dashboard.style.display = 'flex';
-                // Trigger re-flow then set active for fade in
-                setTimeout(() => dashboard.classList.add('active'), 50);
->>>>>>> 5f52b5d3f98d754d89652d1105e98b7ce4dda9e5
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-                // Khởi tạo Dashboard
-                initDashboard();
+                const result = await response.json();
+                if (!response.ok) {
+                    alert('Đăng nhập thất bại: ' + (result.message || 'Sai thông tin'));
+                    return;
+                }
+
+                if (result.data && result.data.token) {
+                    localStorage.setItem('token', result.data.token);
+                }
+
+                alert('Đăng nhập thành công!');
+                openDashboard();
+            } catch (error) {
+                alert('Lỗi kết nối tới máy chủ');
+                console.error(error);
             }
         }
 
         async function doRegister() {
-            const fullname = document.getElementById('register-fullname').value;
+            const fullName = document.getElementById('register-fullname').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-            const confirm = document.getElementById('register-confirm').value;
+            const confirmPassword = document.getElementById('register-confirm').value;
 
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
-
             if (!passwordRegex.test(password)) {
-                alert("Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt");
+                alert('Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt');
                 return;
             }
 
-            if (password !== confirm) {
-                alert("Mật khẩu xác nhận không khớp!");
+            if (password !== confirmPassword) {
+                alert('Mật khẩu xác nhận không khớp!');
                 return;
             }
 
             try {
-                const res = await fetch("http://localhost:8080/api/v1/auth/register", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        fullName: fullname,
-                        email: email,
-                        password: password
-                    })
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullName, email, password })
                 });
 
-                // 🔥 HANDLE ERROR CHUẨN
-                if (!res.ok) {
-                    const text = await res.text();
-
-                    if (text.includes("Email address already in use")) {
-                        alert("Email đã tồn tại rồi!");
+                if (!response.ok && response.status !== 201) {
+                    const text = await response.text();
+                    if (text.includes('Email address already in use')) {
+                        alert('Email đã tồn tại rồi!');
                     } else {
-                        alert("Đăng ký thất bại: " + text);
+                        alert('Đăng ký thất bại: ' + text);
                     }
                     return;
                 }
 
-                alert("Đăng ký thành công!");
+                alert('Đăng ký thành công! Vui lòng đăng nhập.');
                 switchAuthForm('login-form');
-
-            } catch (err) {
-                console.error(err);
-                alert("Lỗi kết nối server");
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi kết nối server');
             }
         }
 
         function doLogout() {
+            localStorage.removeItem('token');
             document.getElementById('dashboard-view').classList.remove('active');
             setTimeout(() => {
                 document.getElementById('dashboard-view').style.display = 'none';
