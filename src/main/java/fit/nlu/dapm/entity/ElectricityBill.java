@@ -14,7 +14,10 @@ public class ElectricityBill extends BaseEntity {
     @JoinColumn(name = "home_id")
     private Home home;
 
+    @Column(name = "\"month\"")
     private Integer month;
+
+    @Column(name = "\"year\"")
     private Integer year;
 
     @Column(name = "total_kwh")

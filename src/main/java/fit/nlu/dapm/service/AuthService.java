@@ -61,8 +61,11 @@ public class AuthService {
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
-        Role userRole = roleRepository.findByRoleName("USER")
-                .orElseThrow(() -> new BadRequestException("User Role not set."));
+        Role userRole = roleRepository.findByRoleName("USER").orElseGet(() -> {
+            Role newRole = new Role();
+            newRole.setRoleName("USER");
+            return roleRepository.save(newRole);
+        });
 
         user.setRole(userRole);
 
