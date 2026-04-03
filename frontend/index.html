@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartHome Dashboard & Authentication</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
         /* =========================================
@@ -86,7 +90,9 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         }
 
-        .form-group input::placeholder { color: #a0aec0; }
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
 
         .btn-auth {
             width: 100%;
@@ -108,7 +114,9 @@
             box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
         }
 
-        .btn-auth:active { transform: translateY(1px); }
+        .btn-auth:active {
+            transform: translateY(1px);
+        }
 
         .links {
             display: flex;
@@ -130,7 +138,10 @@
             text-decoration: underline;
         }
 
-        .text-center { justify-content: center; text-align: center; }
+        .text-center {
+            justify-content: center;
+            text-align: center;
+        }
 
         p.subtitle {
             text-align: center;
@@ -140,7 +151,9 @@
             line-height: 1.5;
         }
 
-        .auth-form { display: none; }
+        .auth-form {
+            display: none;
+        }
 
         .auth-form.active {
             display: block;
@@ -148,8 +161,15 @@
         }
 
         @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .otp-input {
@@ -164,7 +184,8 @@
            CSS CHO DASHBOARD
            ========================================= */
         #dashboard-view {
-            display: none; /* Ẩn đi chờ đăng nhập */
+            display: none;
+            /* Ẩn đi chờ đăng nhập */
             opacity: 0;
             transition: opacity 0.5s ease;
         }
@@ -179,374 +200,520 @@
             right: 0;
             border-color: #68D391;
         }
-        .toggle-checkbox:checked + .toggle-label {
+
+        .toggle-checkbox:checked+.toggle-label {
             background-color: #3B82F6;
         }
-        .toggle-checkbox:checked + .toggle-label .toggle-circle {
+
+        .toggle-checkbox:checked+.toggle-label .toggle-circle {
             transform: translateX(1.25rem);
         }
 
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 text-slate-800 font-sans overflow-hidden">
 
-<!-- =========================================
+    <!-- =========================================
      PHẦN 1: GIAO DIỆN XÁC THỰC (AUTH)
      ========================================= -->
-<div id="auth-view">
-    <div class="auth-container">
+    <div id="auth-view">
+        <div class="auth-container">
 
-        <div id="login-form" class="auth-form active">
-            <h2>Đăng Nhập</h2>
-            <form id="form-login" onsubmit="event.preventDefault(); doLogin();">
-                <div class="form-group">
-                    <label>Email hoặc Tên đăng nhập</label>
-                    <input type="email" id="login-email" required placeholder="example@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
-                </div>
-                <button type="submit" class="btn-auth">Đăng nhập</button>
-                <div class="links">
-                    <a onclick="switchAuthForm('forgot-password-form')">Quên mật khẩu?</a>
-                    <a onclick="switchAuthForm('register-form')">Đăng ký ngay</a>
-                </div>
-            </form>
-        </div>
-
-        <div id="register-form" class="auth-form">
-            <h2>Tạo Tài Khoản</h2>
-            <form id="form-register" onsubmit="event.preventDefault(); doRegister();">
-                <div class="form-group">
-                    <label>Họ và Tên</label>
-                    <input type="text" id="register-fullname" required placeholder="Nguyễn Văn A">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="register-email" required placeholder="example@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <input type="password" id="register-password" required placeholder="Tạo mật khẩu (tối thiểu 6 ký tự)">
-                </div>
-                <div class="form-group">
-                    <label>Xác nhận mật khẩu</label>
-                    <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
-                </div>
-                <button type="submit" class="btn-auth">Đăng ký</button>
-                <div class="links text-center">
-                    <a onclick="switchAuthForm('login-form')">Đã có tài khoản? Đăng nhập</a>
-                </div>
-            </form>
-        </div>
-
-        <div id="forgot-password-form" class="auth-form">
-            <h2>Quên Mật Khẩu</h2>
-            <p class="subtitle">Đừng lo lắng! Hãy nhập email bạn đã đăng ký, chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.</p>
-            <form id="form-forgot" onsubmit="event.preventDefault(); doForgotPassword();">
-                <div class="form-group">
-                    <label>Email của bạn</label>
-                    <input type="email" id="forgot-email" required placeholder="example@email.com">
-                </div>
-                <button type="submit" class="btn-auth">Gửi mã OTP</button>
-                <div class="links text-center">
-                    <a onclick="switchAuthForm('login-form')">Quay lại Đăng nhập</a>
-                </div>
-            </form>
-        </div>
-
-        <div id="otp-form" class="auth-form">
-            <h2>Xác Thực OTP</h2>
-            <p class="subtitle">Vui lòng nhập mã gồm 6 chữ số vừa được gửi đến email của bạn.</p>
-            <form onsubmit="event.preventDefault(); alert('Xác thực thành công!'); switchAuthForm('login-form');">
-                <div class="form-group">
-                    <label style="text-align: center;">Nhập mã bảo mật</label>
-                    <input type="text" id="otp-code" class="otp-input" required maxlength="6" placeholder="------">
-                </div>
-                <button type="submit" class="btn-auth">Xác nhận</button>
-                <div class="links text-center">
-                    <a onclick="switchAuthForm('login-form')">Hủy bỏ</a>
-                </div>
-            </form>
-        </div>
-
-    </div>
-</div>
-
-<!-- =========================================
-     PHẦN 2: GIAO DIỆN DASHBOARD SMARTHOME
-     ========================================= -->
-<div id="dashboard-view" class="h-screen w-full overflow-hidden flex">
-
-    <!-- Sidebar -->
-    <aside class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 z-30">
-        <div class="h-16 flex items-center px-6 border-b border-gray-100">
-            <i data-lucide="zap" class="text-blue-600 mr-2 w-7 h-7"></i>
-            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
-                    SmartHome
-                </span>
-        </div>
-        <nav class="p-4 space-y-2 flex-1">
-            <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium">
-                <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Tổng quan
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-                <i data-lucide="home" class="mr-3 w-5 h-5"></i> Phòng ốc
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-                <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
-            </a>
-        </nav>
-        <div class="p-4 border-t border-gray-100">
-            <a href="#" onclick="doLogout()" class="flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors cursor-pointer">
-                <i data-lucide="log-out" class="mr-3 w-5 h-5"></i> Đăng xuất
-            </a>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-
-        <!-- Header -->
-        <header class="h-16 flex items-center justify-between px-6 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
-            <div class="flex items-center">
-                <i data-lucide="menu" class="w-6 h-6 text-gray-600 lg:hidden mr-4 cursor-pointer"></i>
-                <h1 class="text-xl font-semibold hidden sm:block">Chào mừng trở lại!</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold shadow-md cursor-pointer">
-                    AD
-                </div>
-            </div>
-        </header>
-
-        <!-- Scrollable Area -->
-        <div class="flex-1 overflow-auto p-4 sm:p-8 pb-24">
-
-            <!-- BÀI VIẾT GỢI Ý -->
-            <section class="mb-10">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">Gợi ý cho bạn</h2>
-                    <button class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center">
-                        Xem thêm <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="articles-container">
-                    <!-- Articles will be rendered here via JS -->
-                </div>
-            </section>
-
-            <!-- TỔNG QUAN ĐIỆN NĂNG -->
-            <section class="mb-10">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">Quản lý & Tiêu thụ điện</h2>
-                    <span class="text-sm font-medium text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full flex items-center">
-                            <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1 text-blue-500"></i> Real-time
-                        </span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Card 1: Công suất -->
-                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                                <i data-lucide="activity" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-gray-500 font-medium mb-1">Công suất đang dùng</h3>
-                        <div class="flex items-baseline space-x-1">
-                            <span class="text-3xl font-bold text-gray-800" id="stat-power">0.00</span>
-                            <span class="text-gray-500 font-medium">kW</span>
-                        </div>
-                        <p class="text-sm text-gray-400 mt-2" id="stat-active-devices">0 thiết bị đang bật</p>
+            <div id="login-form" class="auth-form active">
+                <h2>Đăng Nhập</h2>
+                <form id="form-login" onsubmit="event.preventDefault(); doLogin();">
+                    <div class="form-group">
+                        <label>Email hoặc Tên đăng nhập</label>
+                        <input type="email" id="login-email" required placeholder="example@email.com">
                     </div>
-                    <!-- Card 2: Tiền điện hôm nay -->
-                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50"></div>
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                                <i data-lucide="zap" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-gray-500 font-medium mb-1">Chi phí hôm nay</h3>
-                        <div class="flex items-baseline space-x-1 mb-1">
-                            <span class="text-3xl font-bold text-gray-800" id="stat-kwh">0.0</span>
-                            <span class="text-gray-500 font-medium">kWh</span>
-                        </div>
-                        <p class="text-lg font-semibold text-blue-600" id="stat-cost-today">0 ₫</p>
-                    </div>
-                    <!-- Card 3: Tháng này -->
-                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm">
-                                <i data-lucide="calendar" class="w-6 h-6"></i>
-                            </div>
-                            <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md">Tháng này</span>
-                        </div>
-                        <h3 class="text-slate-300 font-medium mb-1">Tổng tiền dự kiến</h3>
-                        <div class="flex items-baseline space-x-1 mb-1">
-                            <span class="text-3xl font-bold text-white" id="stat-cost-month">0 ₫</span>
-                        </div>
-                        <div class="w-full bg-slate-700 rounded-full h-1.5 mt-auto mb-1">
-                            <div class="bg-blue-400 h-1.5 rounded-full" style="width: 65%"></div>
-                        </div>
-                        <p class="text-xs text-slate-400">Đã đạt 65% định mức</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- QUẢN LÝ THIẾT BỊ -->
-            <section>
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">Thiết bị trong nhà</h2>
-                    <div class="flex items-center space-x-3">
-                        <button onclick="toggleEditMode()" id="btn-edit-mode" class="text-sm font-medium flex items-center px-3 py-1.5 rounded-lg transition-colors text-gray-600 hover:bg-gray-100">
-                            <i data-lucide="edit-2" class="w-4 h-4 mr-1.5"></i> <span>Quản lý</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="devices-container">
-                    <!-- Devices will be rendered here via JS -->
-                </div>
-            </section>
-
-        </div>
-
-        <!-- FAB (Thêm thiết bị) -->
-        <button onclick="openAddModal()" class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8 w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/40 hover:scale-105 transition-transform z-40">
-            <i data-lucide="plus" class="w-7 h-7"></i>
-        </button>
-
-        <!-- Modal Thêm Thiết bị -->
-        <div id="add-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
-            <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all">
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 class="font-bold text-lg text-gray-800">Thêm thiết bị mới</h3>
-                    <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 bg-white p-1 rounded-full shadow-sm">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                <form onsubmit="event.preventDefault(); submitAddDevice();" class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên thiết bị</label>
-                        <input type="text" id="new-device-name" required placeholder="VD: Quạt máy" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Phòng</label>
-                            <select id="new-device-room" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                                <option>Phòng khách</option>
-                                <option>Phòng ngủ</option>
-                                <option>Bếp</option>
-                                <option>Phòng tắm</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Loại</label>
-                            <select id="new-device-type" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                                <option value="light">Chiếu sáng</option>
-                                <option value="ac">Điều hoà/Quạt</option>
-                                <option value="tv">Giải trí</option>
-                                <option value="fridge">Tủ lạnh</option>
-                            </select>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <div style="position: relative;">
+                            <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
+                            <i class="fa-solid fa-eye toggle-password"
+                               onclick="togglePassword('login-password', this)"
+                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Công suất (Watt)</label>
-                        <input type="number" id="new-device-power" required min="1" placeholder="VD: 55" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div class="pt-4 flex space-x-3">
-                        <button type="button" onclick="closeAddModal()" class="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">Hủy</button>
-                        <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md">Lưu thiết bị</button>
+                    <button type="submit" class="btn-auth">Đăng nhập</button>
+                    <div class="links">
+                        <a onclick="switchAuthForm('forgot-password-form')">Quên mật khẩu?</a>
+                        <a onclick="switchAuthForm('register-form')">Đăng ký ngay</a>
                     </div>
                 </form>
             </div>
+
+            <div id="register-form" class="auth-form">
+                <h2>Tạo Tài Khoản</h2>
+                <form id="form-register" onsubmit="event.preventDefault(); doRegister();">
+                    <div class="form-group">
+                        <label>Họ và Tên</label>
+                        <input type="text" id="register-fullname" required placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="register-email" required placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <div style="position: relative;">
+                            <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
+                            <i class="fa-solid fa-eye toggle-password"
+                               onclick="togglePassword('register-password', this)"
+                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <div style="position: relative;">
+                            <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
+                            <i class="fa-solid fa-eye toggle-password"
+                               onclick="togglePassword('register-confirm', this)"
+                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-auth">Đăng ký</button>
+                    <div class="links text-center">
+                        <a onclick="switchAuthForm('login-form')">Đã có tài khoản? Đăng nhập</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="forgot-password-form" class="auth-form">
+                <h2>
+
+                </h2>
+                <p class="subtitle">Đừng lo lắng! Hãy nhập email bạn đã đăng ký, chúng tôi sẽ gửi mã OTP để đặt lại mật
+                    khẩu.</p>
+                <form id="form-forgot" onsubmit="event.preventDefault(); switchAuthForm('otp-form');">
+                    <div class="form-group">
+                        <label>Email của bạn</label>
+                        <input type="email" id="forgot-email" required placeholder="example@email.com">
+                    </div>
+                    <button type="submit" class="btn-auth">Gửi mã OTP</button>
+                    <div class="links text-center">
+                        <a onclick="switchAuthForm('login-form')">Quay lại Đăng nhập</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="otp-form" class="auth-form">
+                <h2>Xác Thực OTP</h2>
+                <p class="subtitle">Vui lòng nhập mã gồm 6 chữ số vừa được gửi đến email của bạn.</p>
+                <form id="form-otp"
+                    onsubmit="event.preventDefault(); alert('Xác thực thành công!'); switchAuthForm('login-form');">
+                    <div class="form-group">
+                        <label style="text-align: center;">Nhập mã bảo mật</label>
+                        <input type="text" id="otp-code" class="otp-input" required maxlength="6" placeholder="------">
+                    </div>
+                    <button type="submit" class="btn-auth">Xác nhận</button>
+                    <div class="links text-center">
+                        <a onclick="switchAuthForm('login-form')">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
+
         </div>
+    </div>
 
-    </main>
-</div>
+    <!-- =========================================
+     PHẦN 2: GIAO DIỆN DASHBOARD SMARTHOME
+     ========================================= -->
+    <div id="dashboard-view" class="h-screen w-full overflow-hidden flex">
 
-<!-- =========================================
+        <!-- Sidebar -->
+        <aside class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 z-30">
+            <div class="h-16 flex items-center px-6 border-b border-gray-100">
+                <i data-lucide="zap" class="text-blue-600 mr-2 w-7 h-7"></i>
+                <span
+                    class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
+                    SmartHome
+                </span>
+            </div>
+            <nav class="p-4 space-y-2 flex-1">
+                <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium">
+                    <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Tổng quan
+                </a>
+                <a href="#"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                    <i data-lucide="home" class="mr-3 w-5 h-5"></i> Phòng ốc
+                </a>
+                <a href="#"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                    <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
+                </a>
+            </nav>
+            <div class="p-4 border-t border-gray-100">
+                <a href="#" onclick="doLogout()"
+                    class="flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors cursor-pointer">
+                    <i data-lucide="log-out" class="mr-3 w-5 h-5"></i> Đăng xuất
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
+            <!-- Header -->
+            <header
+                class="h-16 flex items-center justify-between px-6 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
+                <div class="flex items-center">
+                    <i data-lucide="menu" class="w-6 h-6 text-gray-600 lg:hidden mr-4 cursor-pointer"></i>
+                    <h1 class="text-xl font-semibold hidden sm:block">Chào mừng trở lại!</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button
+                        class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span
+                            class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+                    <div
+                        class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold shadow-md cursor-pointer">
+                        AD
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Area -->
+            <div class="flex-1 overflow-auto p-4 sm:p-8 pb-24">
+
+                <!-- BÀI VIẾT GỢI Ý -->
+                <section class="mb-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-gray-800">Gợi ý cho bạn</h2>
+                        <button class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center">
+                            Xem thêm <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="articles-container">
+                        <!-- Articles will be rendered here via JS -->
+                    </div>
+                </section>
+
+                <!-- TỔNG QUAN ĐIỆN NĂNG -->
+                <section class="mb-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-gray-800">Quản lý & Tiêu thụ điện</h2>
+                        <span
+                            class="text-sm font-medium text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full flex items-center">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1 text-blue-500"></i> Real-time
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Card 1: Công suất -->
+                        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                                    <i data-lucide="activity" class="w-6 h-6"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-gray-500 font-medium mb-1">Công suất đang dùng</h3>
+                            <div class="flex items-baseline space-x-1">
+                                <span class="text-3xl font-bold text-gray-800" id="stat-power">0.00</span>
+                                <span class="text-gray-500 font-medium">kW</span>
+                            </div>
+                            <p class="text-sm text-gray-400 mt-2" id="stat-active-devices">0 thiết bị đang bật</p>
+                        </div>
+                        <!-- Card 2: Tiền điện hôm nay -->
+                        <div
+                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50">
+                            </div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                                    <i data-lucide="zap" class="w-6 h-6"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-gray-500 font-medium mb-1">Chi phí hôm nay</h3>
+                            <div class="flex items-baseline space-x-1 mb-1">
+                                <span class="text-3xl font-bold text-gray-800" id="stat-kwh">0.0</span>
+                                <span class="text-gray-500 font-medium">kWh</span>
+                            </div>
+                            <p class="text-lg font-semibold text-blue-600" id="stat-cost-today">0 ₫</p>
+                        </div>
+                        <!-- Card 3: Tháng này -->
+                        <div
+                            class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm">
+                                    <i data-lucide="calendar" class="w-6 h-6"></i>
+                                </div>
+                                <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md">Tháng
+                                    này</span>
+                            </div>
+                            <h3 class="text-slate-300 font-medium mb-1">Tổng tiền dự kiến</h3>
+                            <div class="flex items-baseline space-x-1 mb-1">
+                                <span class="text-3xl font-bold text-white" id="stat-cost-month">0 ₫</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-1.5 mt-auto mb-1">
+                                <div class="bg-blue-400 h-1.5 rounded-full" style="width: 65%"></div>
+                            </div>
+                            <p class="text-xs text-slate-400">Đã đạt 65% định mức</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- QUẢN LÝ THIẾT BỊ -->
+                <section>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-gray-800">Thiết bị trong nhà</h2>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="toggleEditMode()" id="btn-edit-mode"
+                                class="text-sm font-medium flex items-center px-3 py-1.5 rounded-lg transition-colors text-gray-600 hover:bg-gray-100">
+                                <i data-lucide="edit-2" class="w-4 h-4 mr-1.5"></i> <span>Quản lý</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="devices-container">
+                        <!-- Devices will be rendered here via JS -->
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- FAB (Thêm thiết bị) -->
+            <button onclick="openAddModal()"
+                class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8 w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/40 hover:scale-105 transition-transform z-40">
+                <i data-lucide="plus" class="w-7 h-7"></i>
+            </button>
+
+            <!-- Modal Thêm Thiết bị -->
+            <div id="add-modal"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
+                <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <h3 class="font-bold text-lg text-gray-800">Thêm thiết bị mới</h3>
+                        <button onclick="closeAddModal()"
+                            class="text-gray-400 hover:text-gray-600 bg-white p-1 rounded-full shadow-sm">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <form onsubmit="event.preventDefault(); submitAddDevice();" class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tên thiết bị</label>
+                            <input type="text" id="new-device-name" required placeholder="VD: Quạt máy"
+                                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phòng</label>
+                                <select id="new-device-room"
+                                    class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                    <option>Phòng khách</option>
+                                    <option>Phòng ngủ</option>
+                                    <option>Bếp</option>
+                                    <option>Phòng tắm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Loại</label>
+                                <select id="new-device-type"
+                                    class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                    <option value="light">Chiếu sáng</option>
+                                    <option value="ac">Điều hoà/Quạt</option>
+                                    <option value="tv">Giải trí</option>
+                                    <option value="fridge">Tủ lạnh</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Công suất (Watt)</label>
+                            <input type="number" id="new-device-power" required min="1" placeholder="VD: 55"
+                                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="pt-4 flex space-x-3">
+                            <button type="button" onclick="closeAddModal()"
+                                class="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">Hủy</button>
+                            <button type="submit"
+                                class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md">Lưu
+                                thiết bị</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- =========================================
      JAVASCRIPT LOGIC
      ========================================= -->
-<script>
-    // --- 1. XỬ LÝ AUTHENTICATION ---
-    function switchAuthForm(formId) {
-        const forms = document.querySelectorAll('.auth-form');
-        forms.forEach(form => form.classList.remove('active'));
-        document.getElementById(formId).classList.add('active');
-    }
+    <script>
+        // --- 1. XỬ LÝ AUTHENTICATION ---
+        const API_BASE = (window.location.port === '5173' || window.location.port === '4173')
+            ? 'http://localhost:8080/api/v1'
+            : '/api/v1';
 
-    async function doLogin() {
-        // Giả lập Đăng nhập thành công (Bỏ qua fetch API để demo UI)
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
+        function switchAuthForm(formId) {
+            const forms = document.querySelectorAll('.auth-form');
+            forms.forEach(form => form.classList.remove('active'));
+            document.getElementById(formId).classList.add('active');
+        }
 
-        if(email && password) {
-            // Ẩn UI Đăng nhập, Hiện UI Dashboard
+        function openDashboard() {
             document.getElementById('auth-view').style.display = 'none';
             const dashboard = document.getElementById('dashboard-view');
             dashboard.style.display = 'flex';
-            // Trigger re-flow then set active for fade in
             setTimeout(() => dashboard.classList.add('active'), 50);
-
-            // Khởi tạo Dashboard
             initDashboard();
         }
-    }
 
-    async function doRegister() {
-        const pass = document.getElementById('register-password').value;
-        const conf = document.getElementById('register-confirm').value;
-        if (pass !== conf) { alert('Mật khẩu xác nhận không khớp!'); return; }
-        alert('Đăng ký thành công! Vui lòng đăng nhập.');
-        switchAuthForm('login-form');
-    }
+        function setButtonLoading(button, isLoading, loadingText, defaultText) {
+            if (!button) return;
+            button.disabled = isLoading;
+            button.style.opacity = isLoading ? '0.8' : '1';
+            button.style.cursor = isLoading ? 'not-allowed' : 'pointer';
+            button.textContent = isLoading ? loadingText : defaultText;
+        }
 
-    function doLogout() {
-        document.getElementById('dashboard-view').classList.remove('active');
-        setTimeout(() => {
-            document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('auth-view').style.display = 'flex';
-            switchAuthForm('login-form');
-        }, 500);
-    }
+        async function parseApiResponse(response) {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                return await response.json();
+            }
 
-    // --- 2. XỬ LÝ DASHBOARD SMARTHOME ---
-    const ELECTRICITY_RATE = 2500; // VNĐ/kWh
-    let isEditMode = false;
+            const text = await response.text();
+            return { message: text };
+        }
 
-    let devices = [
-        { id: 1, name: 'Đèn phòng khách', room: 'Phòng khách', type: 'light', isOn: true, powerW: 15 },
-        { id: 2, name: 'Điều hoà Inverter', room: 'Phòng ngủ', type: 'ac', isOn: false, powerW: 1200 },
-        { id: 3, name: 'Tivi Thông minh', room: 'Phòng khách', type: 'tv', isOn: true, powerW: 150 },
-        { id: 4, name: 'Tủ lạnh Side-by-side', room: 'Bếp', type: 'fridge', isOn: true, powerW: 180 },
-    ];
+        async function doLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const submitBtn = document.querySelector('#form-login .btn-auth');
 
-    const articles = [
-        { title: '5 mẹo thiết lập máy lạnh tiết kiệm điện', category: 'Mẹo vặt', time: '5 phút', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=400&q=80' },
-        { title: 'Xu hướng nhà thông minh đáng chú ý', category: 'Công nghệ', time: '8 phút', img: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=80' },
-        { title: 'Cách bảo dưỡng thiết bị điện định kỳ', category: 'Bảo trì', time: '4 phút', img: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&q=80' }
-    ];
+            setButtonLoading(submitBtn, true, 'Đang đăng nhập...', 'Đăng nhập');
 
-    function initDashboard() {
-        renderArticles();
-        renderDevices();
-    }
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-    // Render Bài viết
-    function renderArticles() {
-        const container = document.getElementById('articles-container');
-        container.innerHTML = articles.map(art => `
+                const result = await parseApiResponse(response);
+                if (!response.ok) {
+                    alert(result.message || 'Đăng nhập thất bại');
+                    return;
+                }
+
+                const token = result?.data?.token;
+                if (!token) {
+                    alert('Đăng nhập thất bại: Không nhận được token từ máy chủ');
+                    return;
+                }
+
+                localStorage.setItem('token', token);
+                localStorage.setItem('userEmail', email);
+
+                // alert('Đăng nhập thành công!');
+                openDashboard();
+            } catch (error) {
+                alert('Lỗi kết nối tới máy chủ');
+                console.error(error);
+            } finally {
+                setButtonLoading(submitBtn, false, 'Đang đăng nhập...', 'Đăng nhập');
+            }
+        }
+
+        async function doRegister() {
+            const fullName = document.getElementById('register-fullname').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm').value;
+
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
+            if (!passwordRegex.test(password)) {
+                alert('Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Mật khẩu xác nhận không khớp!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullName, email, password })
+                });
+
+                if (!response.ok && response.status !== 201) {
+                    const text = await response.text();
+                    if (text.includes('Email address already in use')) {
+                        alert('Email đã tồn tại rồi!');
+                    } else {
+                        alert('Đăng ký thất bại: ' + text);
+                    }
+                    return;
+                }
+
+                alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                switchAuthForm('login-form');
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi kết nối server');
+            }
+        }
+
+        function doLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userEmail');
+            document.getElementById('dashboard-view').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('auth-view').style.display = 'flex';
+                switchAuthForm('login-form');
+            }, 500);
+        }
+
+        // --- 2. XỬ LÝ DASHBOARD SMARTHOME ---
+        const ELECTRICITY_RATE = 2500; // VNĐ/kWh
+        let isEditMode = false;
+
+        let devices = [
+            { id: 1, name: 'Đèn phòng khách', room: 'Phòng khách', type: 'light', isOn: true, powerW: 15 },
+            { id: 2, name: 'Điều hoà Inverter', room: 'Phòng ngủ', type: 'ac', isOn: false, powerW: 1200 },
+            { id: 3, name: 'Tivi Thông minh', room: 'Phòng khách', type: 'tv', isOn: true, powerW: 150 },
+            { id: 4, name: 'Tủ lạnh Side-by-side', room: 'Bếp', type: 'fridge', isOn: true, powerW: 180 },
+        ];
+
+        const articles = [
+            { title: '5 mẹo thiết lập máy lạnh tiết kiệm điện', category: 'Mẹo vặt', time: '5 phút', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=400&q=80' },
+            { title: 'Xu hướng nhà thông minh đáng chú ý', category: 'Công nghệ', time: '8 phút', img: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=80' },
+            { title: 'Cách bảo dưỡng thiết bị điện định kỳ', category: 'Bảo trì', time: '4 phút', img: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&q=80' }
+        ];
+
+        function initDashboard() {
+            renderArticles();
+            renderDevices();
+        }
+
+        // Render Bài viết
+        function renderArticles() {
+            const container = document.getElementById('articles-container');
+            container.innerHTML = articles.map(art => `
                 <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
                     <div class="h-40 overflow-hidden relative">
                         <img src="${art.img}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
@@ -560,23 +727,23 @@
                     </div>
                 </div>
             `).join('');
-        lucide.createIcons();
-    }
+            lucide.createIcons();
+        }
 
-    // Render Thiết bị
-    function renderDevices() {
-        const container = document.getElementById('devices-container');
-        container.innerHTML = devices.map(device => {
-            let iconName = 'power';
-            if(device.type === 'light') iconName = 'lightbulb';
-            else if(device.type === 'ac') iconName = 'wind';
-            else if(device.type === 'tv') iconName = 'tv';
-            else if(device.type === 'fridge') iconName = 'thermometer';
+        // Render Thiết bị
+        function renderDevices() {
+            const container = document.getElementById('devices-container');
+            container.innerHTML = devices.map(device => {
+                let iconName = 'power';
+                if (device.type === 'light') iconName = 'lightbulb';
+                else if (device.type === 'ac') iconName = 'wind';
+                else if (device.type === 'tv') iconName = 'tv';
+                else if (device.type === 'fridge') iconName = 'thermometer';
 
-            const bgClass = device.isOn ? 'bg-white border-blue-100 shadow-md shadow-blue-50/50' : 'bg-gray-50 border-gray-100 shadow-sm';
-            const iconBgClass = device.isOn ? 'bg-blue-50 text-blue-500' : 'bg-white text-gray-400 border border-gray-100';
+                const bgClass = device.isOn ? 'bg-white border-blue-100 shadow-md shadow-blue-50/50' : 'bg-gray-50 border-gray-100 shadow-sm';
+                const iconBgClass = device.isOn ? 'bg-blue-50 text-blue-500' : 'bg-white text-gray-400 border border-gray-100';
 
-            return `
+                return `
                     <div class="relative p-5 rounded-2xl border transition-all duration-200 ${bgClass}">
                         ${isEditMode ? `
                             <button onclick="deleteDevice(${device.id})" class="absolute -top-2 -right-2 w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white shadow-sm z-10">
@@ -605,138 +772,103 @@
                         </div>
                     </div>
                 `;
-        }).join('');
-        lucide.createIcons();
-        updateStats();
-    }
-
-    // Logic Dashboard
-    function toggleDevice(id) {
-        const device = devices.find(d => d.id === id);
-        if(device) device.isOn = !device.isOn;
-        renderDevices();
-    }
-
-    function toggleEditMode() {
-        isEditMode = !isEditMode;
-        const btn = document.getElementById('btn-edit-mode');
-        if(isEditMode) {
-            btn.classList.add('bg-blue-100', 'text-blue-700');
-            btn.querySelector('span').innerText = 'Hoàn tất';
-        } else {
-            btn.classList.remove('bg-blue-100', 'text-blue-700');
-            btn.querySelector('span').innerText = 'Quản lý';
+            }).join('');
+            lucide.createIcons();
+            updateStats();
         }
-        renderDevices();
-    }
 
-    function deleteDevice(id) {
-        devices = devices.filter(d => d.id !== id);
-        renderDevices();
-    }
-
-    function updateStats() {
-        const currentPowerW = devices.reduce((sum, d) => d.isOn ? sum + d.powerW : sum, 0);
-        const activeCount = devices.filter(d => d.isOn).length;
-
-        // Giả lập tính toán
-        const baseKwh = 4.5;
-        const currentKwh = baseKwh + (currentPowerW * 4 / 1000);
-        const todayCost = currentKwh * ELECTRICITY_RATE;
-        const monthlyCost = (185.5 + currentKwh) * ELECTRICITY_RATE;
-
-        const formatMoney = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-
-        document.getElementById('stat-power').innerText = (currentPowerW / 1000).toFixed(2);
-        document.getElementById('stat-active-devices').innerText = `${activeCount} thiết bị đang bật`;
-        document.getElementById('stat-kwh').innerText = currentKwh.toFixed(1);
-        document.getElementById('stat-cost-today').innerText = formatMoney(todayCost);
-        document.getElementById('stat-cost-month').innerText = formatMoney(monthlyCost);
-    }
-
-    // Logic Thêm Thiết bị (Modal)
-    function openAddModal() {
-        document.getElementById('add-modal').classList.remove('hidden');
-    }
-
-    function closeAddModal() {
-        document.getElementById('add-modal').classList.add('hidden');
-    }
-
-    function submitAddDevice() {
-        const name = document.getElementById('new-device-name').value;
-        const room = document.getElementById('new-device-room').value;
-        const type = document.getElementById('new-device-type').value;
-        const powerW = document.getElementById('new-device-power').value;
-
-        if(name && powerW) {
-            devices.push({
-                id: Date.now(),
-                name, room, type,
-                isOn: false,
-                powerW: Number(powerW)
-            });
-            closeAddModal();
-
-            // Reset form
-            document.getElementById('new-device-name').value = '';
-            document.getElementById('new-device-power').value = '';
-
+        // Logic Dashboard
+        function toggleDevice(id) {
+            const device = devices.find(d => d.id === id);
+            if (device) device.isOn = !device.isOn;
             renderDevices();
         }
-    }
-    async function doForgotPassword() {
-        const email = document.getElementById('forgot-email').value;
 
-        try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert('OTP đã gửi về email!');
-                switchAuthForm('otp-form');
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('btn-edit-mode');
+            if (isEditMode) {
+                btn.classList.add('bg-blue-100', 'text-blue-700');
+                btn.querySelector('span').innerText = 'Hoàn tất';
             } else {
-                alert('Lỗi: ' + (result.message || 'Không gửi được OTP'));
+                btn.classList.remove('bg-blue-100', 'text-blue-700');
+                btn.querySelector('span').innerText = 'Quản lý';
             }
-
-        } catch (error) {
-            alert('Lỗi server');
-            console.error(error);
+            renderDevices();
         }
-    }
-    async function doVerifyOTP() {
-        const email = document.getElementById('forgot-email').value;
-        const otp = document.getElementById('otp-code').value;
 
-        try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/verify-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp })
-            });
+        function deleteDevice(id) {
+            devices = devices.filter(d => d.id !== id);
+            renderDevices();
+        }
 
-            const result = await response.json();
+        function updateStats() {
+            const currentPowerW = devices.reduce((sum, d) => d.isOn ? sum + d.powerW : sum, 0);
+            const activeCount = devices.filter(d => d.isOn).length;
 
-            if (response.ok) {
-                alert('OTP đúng!');
-                showResetForm();
+            // Giả lập tính toán
+            const baseKwh = 4.5;
+            const currentKwh = baseKwh + (currentPowerW * 4 / 1000);
+            const todayCost = currentKwh * ELECTRICITY_RATE;
+            const monthlyCost = (185.5 + currentKwh) * ELECTRICITY_RATE;
+
+            const formatMoney = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+
+            document.getElementById('stat-power').innerText = (currentPowerW / 1000).toFixed(2);
+            document.getElementById('stat-active-devices').innerText = `${activeCount} thiết bị đang bật`;
+            document.getElementById('stat-kwh').innerText = currentKwh.toFixed(1);
+            document.getElementById('stat-cost-today').innerText = formatMoney(todayCost);
+            document.getElementById('stat-cost-month').innerText = formatMoney(monthlyCost);
+        }
+
+        // Logic Thêm Thiết bị (Modal)
+        function openAddModal() {
+            document.getElementById('add-modal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+        }
+
+        function submitAddDevice() {
+            const name = document.getElementById('new-device-name').value;
+            const room = document.getElementById('new-device-room').value;
+            const type = document.getElementById('new-device-type').value;
+            const powerW = document.getElementById('new-device-power').value;
+
+            if (name && powerW) {
+                devices.push({
+                    id: Date.now(),
+                    name, room, type,
+                    isOn: false,
+                    powerW: Number(powerW)
+                });
+                closeAddModal();
+
+                // Reset form
+                document.getElementById('new-device-name').value = '';
+                document.getElementById('new-device-power').value = '';
+
+                renderDevices();
+            }
+        }
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
             } else {
-                alert('OTP sai hoặc hết hạn');
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
             }
-
-        } catch (error) {
-            alert('Lỗi server');
-            console.error(error);
         }
-    }
 
-    // Khởi tạo icon ban đầu
-    lucide.createIcons();
-</script>
+        // Khởi tạo icon ban đầu
+        lucide.createIcons();
+    </script>
 </body>
+
 </html>

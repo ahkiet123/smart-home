@@ -13,6 +13,7 @@ import fit.nlu.dapm.repository.UserRepository;
 import fit.nlu.dapm.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,17 +48,25 @@ public class AuthService {
     private EmailService emailService;
 
     public AuthResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getEmail(),
-                        loginRequest.getPassword()
-                )
-        );
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("EMAIL_NOT_FOUND"));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-        String jwt = tokenProvider.generateToken(authentication);
-        return new AuthResponse(jwt);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            String jwt = tokenProvider.generateToken(authentication);
+            return new AuthResponse(jwt);
+
+        } catch (BadCredentialsException ex) {
+            throw new RuntimeException("INVALID_PASSWORD");
+        }
     }
 
     @Transactional
@@ -71,8 +80,11 @@ public class AuthService {
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
-        Role userRole = roleRepository.findByRoleName("USER")
-                .orElseThrow(() -> new BadRequestException("User Role not set."));
+        Role userRole = roleRepository.findByRoleName("USER").orElseGet(() -> {
+            Role newRole = new Role();
+            newRole.setRoleName("USER");
+            return roleRepository.save(newRole);
+        });
 
         user.setRole(userRole);
 
