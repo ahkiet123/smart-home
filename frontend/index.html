@@ -480,39 +480,87 @@
      ========================================= -->
 <script>
     // --- 1. XỬ LÝ AUTHENTICATION ---
+    const API_BASE = (window.location.port === '5173' || window.location.port === '4173')
+        ? 'http://localhost:8080/api/v1'
+        : '/api/v1';
+
     function switchAuthForm(formId) {
         const forms = document.querySelectorAll('.auth-form');
         forms.forEach(form => form.classList.remove('active'));
         document.getElementById(formId).classList.add('active');
     }
 
+    function openDashboard() {
+        document.getElementById('auth-view').style.display = 'none';
+        const dashboard = document.getElementById('dashboard-view');
+        dashboard.style.display = 'flex';
+        setTimeout(() => dashboard.classList.add('active'), 50);
+        initDashboard();
+    }
+
     async function doLogin() {
-        // Giả lập Đăng nhập thành công (Bỏ qua fetch API để demo UI)
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
-        if(email && password) {
-            // Ẩn UI Đăng nhập, Hiện UI Dashboard
-            document.getElementById('auth-view').style.display = 'none';
-            const dashboard = document.getElementById('dashboard-view');
-            dashboard.style.display = 'flex';
-            // Trigger re-flow then set active for fade in
-            setTimeout(() => dashboard.classList.add('active'), 50);
+        try {
+            const response = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
 
-            // Khởi tạo Dashboard
-            initDashboard();
+            const result = await response.json();
+            if (!response.ok) {
+                alert('Đăng nhập thất bại: ' + (result.message || 'Sai thông tin'));
+                return;
+            }
+
+            if (result.data && result.data.token) {
+                localStorage.setItem('token', result.data.token);
+            }
+
+            alert('Đăng nhập thành công!');
+            openDashboard();
+        } catch (error) {
+            alert('Lỗi kết nối tới máy chủ');
+            console.error(error);
         }
     }
 
     async function doRegister() {
-        const pass = document.getElementById('register-password').value;
-        const conf = document.getElementById('register-confirm').value;
-        if (pass !== conf) { alert('Mật khẩu xác nhận không khớp!'); return; }
-        alert('Đăng ký thành công! Vui lòng đăng nhập.');
-        switchAuthForm('login-form');
+        const fullName = document.getElementById('register-fullname').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-confirm').value;
+
+        if (password !== confirmPassword) {
+            alert('Mật khẩu xác nhận không khớp!');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullName, email, password })
+            });
+
+            const result = await response.json();
+            if (!response.ok && response.status !== 201) {
+                alert('Đăng ký thất bại: ' + (result.message || 'Lỗi hệ thống'));
+                return;
+            }
+
+            alert('Đăng ký thành công! Vui lòng đăng nhập.');
+            switchAuthForm('login-form');
+        } catch (error) {
+            alert('Lỗi kết nối tới máy chủ');
+            console.error(error);
+        }
     }
 
     function doLogout() {
+        localStorage.removeItem('token');
         document.getElementById('dashboard-view').classList.remove('active');
         setTimeout(() => {
             document.getElementById('dashboard-view').style.display = 'none';
