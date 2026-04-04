@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/blogs")
+@RequestMapping("/blogs")
 public class BlogController {
 
     @Autowired
@@ -31,4 +31,3 @@ public class BlogController {
         return ResponseEntity.ok(ApiResponse.success("Blog post retrieved", response));
     }
 }
-
