@@ -250,9 +250,8 @@
                         <label>Mật khẩu</label>
                         <div style="position: relative;">
                             <input type="password" id="login-password" required placeholder="Nhập mật khẩu của bạn">
-                            <i class="fa-solid fa-eye toggle-password"
-                               onclick="togglePassword('login-password', this)"
-                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('login-password', this)"
+                                style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
                     </div>
                     <button type="submit" class="btn-auth">Đăng nhập</button>
@@ -279,8 +278,8 @@
                         <div style="position: relative;">
                             <input type="password" id="register-password" required placeholder="Tạo mật khẩu">
                             <i class="fa-solid fa-eye toggle-password"
-                               onclick="togglePassword('register-password', this)"
-                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                                onclick="togglePassword('register-password', this)"
+                                style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
 
                     </div>
@@ -289,8 +288,8 @@
                         <div style="position: relative;">
                             <input type="password" id="register-confirm" required placeholder="Nhập lại mật khẩu">
                             <i class="fa-solid fa-eye toggle-password"
-                               onclick="togglePassword('register-confirm', this)"
-                               style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                                onclick="togglePassword('register-confirm', this)"
+                                style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
                         </div>
                     </div>
                     <button type="submit" class="btn-auth">Đăng ký</button>
@@ -321,7 +320,7 @@
             <div id="otp-form" class="auth-form">
                 <h2>Xác Thực OTP</h2>
                 <p class="subtitle">Vui lòng nhập mã gồm 6 chữ số vừa được gửi đến email của bạn.</p>
-                <form onsubmit="event.preventDefault(); alert('Xác thực thành công!'); switchAuthForm('login-form');">
+                <form onsubmit="event.preventDefault(); doVerifyOTP();">
                     <div class="form-group">
                         <label style="text-align: center;">Nhập mã bảo mật</label>
                         <input type="text" id="otp-code" class="otp-input" required maxlength="6" placeholder="------">
@@ -333,6 +332,23 @@
                 </form>
             </div>
 
+            <div id="reset-password-form" class="auth-form">
+                <form id="form-reset-password" onsubmit="event.preventDefault(); doResetPassword();">
+
+                    <div class="form-group">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" id="reset-password" required placeholder="Tạo mật khẩu mới">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" id="reset-confirm-password" required placeholder="Nhập lại mật khẩu">
+                    </div>
+
+                    <button type="submit" class="btn-auth">Xác nhận</button>
+
+                </form>
+            </div>
         </div>
     </div>
 
@@ -355,11 +371,11 @@
                     <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Tổng quan
                 </a>
                 <a href="#" onclick="showRoomStats()"
-                   class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                     <i data-lucide="home" class="mr-3 w-5 h-5"></i> Phòng ốc
                 </a>
                 <a href="#" onclick="showEnergyChart()"
-                   class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                     <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
                 </a>
             </nav>
@@ -415,19 +431,22 @@
                 <section class="mb-10">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-800">Quản lý & Tiêu thụ điện</h2>
-                        <span class="text-sm font-medium text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full flex items-center">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1 text-blue-500"></i> Nhật ký sử dụng
-        </span>
+                        <span
+                            class="text-sm font-medium text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full flex items-center">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1 text-blue-500"></i> Nhật ký sử dụng
+                        </span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                        <div onclick="showPowerDetail()" class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col cursor-pointer hover:border-blue-300 transition-all group">
+                        <div onclick="showPowerDetail()"
+                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col cursor-pointer hover:border-blue-300 transition-all group">
                             <div class="flex justify-between items-start mb-4">
                                 <div class="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100">
                                     <i data-lucide="activity" class="w-6 h-6"></i>
                                 </div>
-                                <span class="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Xem chi tiết</span>
+                                <span class="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Xem chi
+                                    tiết</span>
                             </div>
                             <h3 class="text-gray-500 font-medium mb-1">Công suất sử dụng</h3>
                             <div class="flex items-baseline space-x-1">
@@ -437,12 +456,15 @@
                             <p class="text-sm text-gray-400 mt-2" id="stat-active-devices">0 thiết bị</p>
                         </div>
 
-                        <div onclick="showTodayDetail()" class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col border-l-4 border-l-blue-500 cursor-pointer hover:border-blue-300 transition-all group">
+                        <div onclick="showTodayDetail()"
+                            class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col border-l-4 border-l-blue-500 cursor-pointer hover:border-blue-300 transition-all group">
                             <div class="flex justify-between items-start mb-4">
                                 <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100">
                                     <i data-lucide="zap" class="w-6 h-6"></i>
                                 </div>
-                                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md tracking-wider">Hôm nay</span>
+                                <span
+                                    class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md tracking-wider">Hôm
+                                    nay</span>
                             </div>
                             <h3 class="text-gray-500 font-medium mb-1">Chi phí hôm nay</h3>
                             <div class="flex flex-col">
@@ -453,12 +475,16 @@
                             </div>
                         </div>
 
-                        <div onclick="showMonthDetail()" class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white cursor-pointer hover:opacity-90 transition-all group">
+                        <div onclick="showMonthDetail()"
+                            class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-md flex flex-col text-white cursor-pointer hover:opacity-90 transition-all group">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm group-hover:bg-white/20">
+                                <div
+                                    class="p-3 bg-white/10 text-white rounded-xl backdrop-blur-sm group-hover:bg-white/20">
                                     <i data-lucide="calendar" class="w-6 h-6"></i>
                                 </div>
-                                <span class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md tracking-wider">Dự kiến</span>
+                                <span
+                                    class="text-xs font-medium text-slate-300 bg-white/10 px-2 py-1 rounded-md tracking-wider">Dự
+                                    kiến</span>
                             </div>
                             <h3 class="text-slate-300 font-medium mb-1">Tổng tiền tháng này</h3>
                             <div class="flex items-baseline space-x-1 mb-1">
@@ -489,7 +515,7 @@
             </div>
             <!-- Modal Chi tiết thiết bị -->
             <div id="device-detail-modal"
-                 class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 
                 <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
                     <h3 class="text-lg font-bold mb-4">Thông tin thiết bị</h3>
@@ -502,15 +528,15 @@
                         <p><strong>Trạng thái:</strong> <span id="detail-status"></span></p>
                     </div>
 
-                    <button onclick="closeDeviceDetail()"
-                            class="mt-5 w-full py-2 bg-blue-600 text-white rounded-xl">
+                    <button onclick="closeDeviceDetail()" class="mt-5 w-full py-2 bg-blue-600 text-white rounded-xl">
                         Đóng
                     </button>
                 </div>
             </div>
 
             <!-- xem chi tiet 3 o dashboard -->
-            <div id="stats-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div id="stats-detail-modal"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
                 <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
                     <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                         <h3 id="stats-title" class="font-bold text-xl text-gray-800">Chi tiết</h3>
@@ -521,7 +547,8 @@
                     <div class="p-6">
                         <div id="stats-content" class="space-y-4">
                         </div>
-                        <button onclick="closeStatsModal()" class="mt-8 w-full py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors">
+                        <button onclick="closeStatsModal()"
+                            class="mt-8 w-full py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors">
                             Đã hiểu
                         </button>
                     </div>
@@ -530,7 +557,8 @@
 
             <!-- thong ke phong oc -->
 
-            <div id="room-stats-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div id="room-stats-modal"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
                 <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
                     <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <h3 class="font-bold text-lg text-gray-800 flex items-center">
@@ -547,14 +575,16 @@
                         </div>
                     </div>
                     <div class="p-4 border-t border-gray-50 flex justify-center">
-                        <button onclick="closeRoomModal()" class="text-sm font-bold text-gray-400 hover:text-gray-600">ĐÓNG</button>
+                        <button onclick="closeRoomModal()"
+                            class="text-sm font-bold text-gray-400 hover:text-gray-600">ĐÓNG</button>
                     </div>
                 </div>
             </div>
 
             <!-- bieu do thong ke dien -->
 
-            <div id="chart-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div id="chart-modal"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
                 <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
                     <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                         <h3 class="font-bold text-xl text-gray-800 flex items-center">
@@ -572,7 +602,8 @@
                         </div>
                     </div>
                     <div class="p-4 bg-gray-50 text-center">
-                        <button onclick="closeChartModal()" class="text-blue-600 font-bold hover:underline">Đóng thống kê</button>
+                        <button onclick="closeChartModal()" class="text-blue-600 font-bold hover:underline">Đóng thống
+                            kê</button>
                     </div>
                 </div>
             </div>
@@ -630,7 +661,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian dùng (giờ)</label>
                             <input type="number" id="new-device-hours" required min="1" placeholder="VD: 1"
-                                   class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div class="pt-4 flex space-x-3">
                             <button type="button" onclick="closeAddModal()"
@@ -1122,30 +1153,6 @@
                 icon.classList.add("fa-eye");
             }
         }
-        async function doForgotPassword() {
-            const email = document.getElementById('forgot-email').value;
-
-            try {
-                const response = await fetch('http://localhost:8080/api/v1/auth/forgot-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('OTP đã gửi về email!');
-                    switchAuthForm('otp-form');
-                } else {
-                    alert('Lỗi: ' + (result.message || 'Không gửi được OTP'));
-                }
-
-            } catch (error) {
-                alert('Lỗi server');
-                console.error(error);
-            }
-        }
 
         //ve bieu do thong ke dien
 
@@ -1215,24 +1222,95 @@
         function closeChartModal() {
             document.getElementById('chart-modal').classList.add('hidden');
         }
-        async function doVerifyOTP() {
+
+        // quen mat khau
+        async function doForgotPassword() {
             const email = document.getElementById('forgot-email').value;
+
+            localStorage.setItem('resetEmail', email);
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('OTP đã gửi về email!');
+                    switchAuthForm('otp-form');
+                } else {
+                    alert('Lỗi: ' + (result.message || 'Không gửi được OTP'));
+                }
+
+            } catch (error) {
+                alert('Lỗi server');
+                console.error(error);
+            }
+        }
+
+        async function doVerifyOTP() {
+            const email = localStorage.getItem('resetEmail');
             const otp = document.getElementById('otp-code').value;
 
             try {
-                const response = await fetch('http://localhost:8080/api/v1/auth/verify-otp', {
+                const response = await fetch(`${API_BASE}/auth/verify-otp`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, otp})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
                     alert('OTP đúng!');
-                    showResetForm();
+                    switchAuthForm('reset-password-form');
                 } else {
                     alert('OTP sai hoặc hết hạn');
+                }
+
+            } catch (error) {
+                alert('Lỗi server');
+                console.error(error);
+            }
+        }
+
+        async function doResetPassword() {
+            const email = localStorage.getItem('resetEmail');
+            const password = document.getElementById('reset-password').value;
+            const confirm = document.getElementById('reset-confirm-password').value;
+            const otp = document.getElementById('otp-code').value;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
+
+            if (!passwordRegex.test(password)) {
+                alert('Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt');
+                return;
+            }
+
+            if (password !== confirm) {
+                alert('Mật khẩu không khớp');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        otp: otp,
+                        newPassword: password
+                    })
+                });
+
+                const result = await parseApiResponse(response);
+                if (response.ok) {
+                    alert('Đổi mật khẩu thành công!');
+                    switchAuthForm('login-form');
+                } else {
+                    alert(result.message || 'Mật khẩu mới không được trùng mật khẩu cũ');
                 }
 
             } catch (error) {
@@ -1308,7 +1386,7 @@
         }
 
         //click de out
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             // Danh sách các ID của lớp nền (Overlay)
             const modalOverlays = [
                 'chart-modal',

@@ -144,5 +144,27 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+
+    @Transactional
+    public void resetPassword(String email, String otp, String newPassword) {
+        PasswordResetOTP otpEntity = otpRepository.findByEmailAndOtp(email, otp)
+                .orElseThrow(() -> new BadRequestException("OTP không đúng"));
+
+        if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("OTP đã hết hạn");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new BadRequestException("Mật khẩu mới không được trùng");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        otpRepository.delete(otpEntity);
+    }
 }
 
