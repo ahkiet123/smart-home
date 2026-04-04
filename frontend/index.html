@@ -7,7 +7,7 @@
     <title>SmartHome Dashboard & Authentication</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- Tailwind CSS -->
@@ -28,7 +28,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Be Vietnam Pro', sans-serif;
         }
 
         #auth-view {
@@ -367,7 +367,8 @@
                 </span>
             </div>
             <nav class="p-4 space-y-2 flex-1">
-                <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium">
+                <a href="#" onclick="switchDashboardTab('overview')" id="tab-overview"
+                    class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer">
                     <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Tổng quan
                 </a>
                 <a href="#" onclick="showRoomStats()"
@@ -377,6 +378,10 @@
                 <a href="#" onclick="showEnergyChart()"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                     <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
+                </a>
+                <a href="#" onclick="switchDashboardTab('profile-page')" id="tab-profile-page"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer">
+                    <i data-lucide="user" class="mr-3 w-5 h-5"></i> Hồ sơ cá nhân
                 </a>
             </nav>
             <div class="p-4 border-t border-gray-100">
@@ -404,15 +409,18 @@
                         <span
                             class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                     </button>
-                    <div
-                        class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold shadow-md cursor-pointer">
+                    <div onclick="openQuickProfileModal()" id="header-avatar"
+                        class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold shadow-md cursor-pointer"
+                        title="Cài đặt tài khoản">
                         AD
                     </div>
                 </div>
             </header>
 
             <!-- Scrollable Area -->
-            <div class="flex-1 overflow-auto p-4 sm:p-8 pb-24">
+            <div class="flex-1 overflow-auto p-4 sm:p-8 pb-24" id="main-content-area">
+
+                <div id="overview-content" class="block">
 
                 <!-- BÀI VIẾT GỢI Ý -->
                 <section class="mb-10">
@@ -512,6 +520,59 @@
                     </div>
                 </section>
 
+                </div>
+
+                <div id="profile-page-content" class="hidden max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Chi tiết Hồ sơ cá nhân</h2>
+
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-6">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg"
+                            id="page-avatar">AD</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-semibold text-gray-800" id="page-display-name">Admin User</h3>
+                            <p class="text-gray-500 flex items-center mt-1">
+                                <i data-lucide="mail" class="w-4 h-4 mr-2"></i> <span id="page-display-email">admin@example.com</span>
+                            </p>
+                            <span
+                                class="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Thành viên Hệ thống</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-4 flex items-center">
+                            <i data-lucide="edit" class="w-5 h-5 mr-2 text-blue-500"></i> Thông tin cơ bản
+                        </h4>
+                        <form onsubmit="event.preventDefault(); submitUpdateFullProfile();" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Họ và Tên</label>
+                                    <input type="text" id="full-profile-name"
+                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                        value="Admin User">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                                    <input type="tel" id="full-profile-phone"
+                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                        placeholder="0987654321">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ Email (Cố định)</label>
+                                    <input type="email" id="full-profile-email"
+                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 outline-none text-gray-500 cursor-not-allowed"
+                                        value="admin@example.com" readonly>
+                                </div>
+                            </div>
+                            <div class="flex justify-end pt-4">
+                                <button type="submit"
+                                    class="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 shadow-md transition-all flex items-center">
+                                    <i data-lucide="save" class="w-5 h-5 mr-2"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </div>
             <!-- Modal Chi tiết thiết bị -->
             <div id="device-detail-modal"
@@ -609,7 +670,7 @@
             </div>
 
             <!-- FAB (Thêm thiết bị) -->
-            <button onclick="openAddModal()"
+            <button id="fab-add-device" onclick="openAddModal()"
                 class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8 w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/40 hover:scale-105 transition-transform z-40">
                 <i data-lucide="plus" class="w-7 h-7"></i>
             </button>
@@ -674,740 +735,78 @@
                 </div>
             </div>
 
+            <div id="quick-profile-modal"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
+                <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden transform transition-all">
+                    <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <h3 class="font-bold text-gray-800">Tài khoản Nhanh</h3>
+                        <button type="button" onclick="closeQuickProfileModal()"
+                            class="text-gray-400 hover:text-gray-600 bg-white p-1 rounded-full shadow-sm cursor-pointer">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex items-center justify-center text-lg font-bold shadow-sm"
+                                id="modal-avatar">
+                                AD
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 text-base leading-tight" id="modal-display-name">Admin User</h4>
+                                <p class="text-xs text-gray-500 mt-1" id="modal-display-email">admin@example.com</p>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-100 mb-6">
+
+                        <form onsubmit="event.preventDefault(); submitChangePassword();" class="space-y-4 mb-6">
+                            <h4 class="font-medium text-gray-800 text-sm flex items-center">
+                                <i data-lucide="lock" class="w-4 h-4 mr-1.5 text-blue-500"></i> Đổi mật khẩu
+                            </h4>
+                            <div>
+                                <div style="position: relative;">
+                                    <input type="password" id="quick-old-password" required placeholder="Mật khẩu hiện tại"
+                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
+                                    <i class="fa-solid fa-eye toggle-password"
+                                        onclick="togglePassword('quick-old-password', this)"
+                                        style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="position: relative;">
+                                    <input type="password" id="quick-new-password" required placeholder="Mật khẩu mới"
+                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
+                                    <i class="fa-solid fa-eye toggle-password"
+                                        onclick="togglePassword('quick-new-password', this)"
+                                        style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer;"></i>
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="w-full py-2.5 bg-slate-800 text-white rounded-xl text-sm font-medium hover:bg-slate-900 shadow-md transition-all">
+                                Xác nhận đổi mật khẩu
+                            </button>
+                        </form>
+
+                        <button type="button" onclick="goToProfilePage()"
+                            class="w-full py-2.5 border border-blue-200 text-blue-600 bg-blue-50 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors flex items-center justify-center">
+                            <i data-lucide="external-link" class="w-4 h-4 mr-2"></i> Mở trang Hồ sơ chi tiết
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
     <!-- =========================================
      JAVASCRIPT LOGIC
      ========================================= -->
-    <script>
-        // --- 1. XỬ LÝ AUTHENTICATION ---
-        const API_BASE = (window.location.port === '5173' || window.location.port === '4173')
-            ? 'http://localhost:8080/api/v1'
-            : '/api/v1';
-
-        function switchAuthForm(formId) {
-            const forms = document.querySelectorAll('.auth-form');
-            forms.forEach(form => form.classList.remove('active'));
-            document.getElementById(formId).classList.add('active');
-        }
-
-        function openDashboard() {
-            document.getElementById('auth-view').style.display = 'none';
-            const dashboard = document.getElementById('dashboard-view');
-            dashboard.style.display = 'flex';
-            setTimeout(() => dashboard.classList.add('active'), 50);
-            initDashboard();
-        }
-
-        function setButtonLoading(button, isLoading, loadingText, defaultText) {
-            if (!button) return;
-            button.disabled = isLoading;
-            button.style.opacity = isLoading ? '0.8' : '1';
-            button.style.cursor = isLoading ? 'not-allowed' : 'pointer';
-            button.textContent = isLoading ? loadingText : defaultText;
-        }
-
-        async function parseApiResponse(response) {
-            const contentType = response.headers.get('content-type') || '';
-            if (contentType.includes('application/json')) {
-                return await response.json();
-            }
-
-            const text = await response.text();
-            return { message: text };
-        }
-
-        async function doLogin() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const submitBtn = document.querySelector('#form-login .btn-auth');
-
-            setButtonLoading(submitBtn, true, 'Đang đăng nhập...', 'Đăng nhập');
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const result = await parseApiResponse(response);
-                if (!response.ok) {
-                    alert(result.message || 'Đăng nhập thất bại');
-                    return;
-                }
-
-                const token = result?.data?.token;
-                if (!token) {
-                    alert('Đăng nhập thất bại: Không nhận được token từ máy chủ');
-                    return;
-                }
-
-                localStorage.setItem('token', token);
-                localStorage.setItem('userEmail', email);
-
-                // alert('Đăng nhập thành công!');
-                openDashboard();
-            } catch (error) {
-                alert('Lỗi kết nối tới máy chủ');
-                console.error(error);
-            } finally {
-                setButtonLoading(submitBtn, false, 'Đang đăng nhập...', 'Đăng nhập');
-            }
-        }
-
-        async function doRegister() {
-            const fullName = document.getElementById('register-fullname').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-confirm').value;
-
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
-            if (!passwordRegex.test(password)) {
-                alert('Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                alert('Mật khẩu xác nhận không khớp!');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fullName, email, password })
-                });
-
-                if (!response.ok && response.status !== 201) {
-                    const text = await response.text();
-                    if (text.includes('Email address already in use')) {
-                        alert('Email đã tồn tại rồi!');
-                    } else {
-                        alert('Đăng ký thất bại: ' + text);
-                    }
-                    return;
-                }
-
-                alert('Đăng ký thành công! Vui lòng đăng nhập.');
-                switchAuthForm('login-form');
-            } catch (error) {
-                console.error(error);
-                alert('Lỗi kết nối server');
-            }
-        }
-
-        function doLogout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userEmail');
-            document.getElementById('dashboard-view').classList.remove('active');
-            setTimeout(() => {
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('auth-view').style.display = 'flex';
-                switchAuthForm('login-form');
-            }, 500);
-        }
-        //xem thiet bi
-
-        function openDeviceDetail(id) {
-            const device = devices.find(d => d.id === id);
-            if (!device) return;
-
-            document.getElementById('detail-name').innerText = device.name;
-            document.getElementById('detail-room').innerText = device.room;
-            document.getElementById('detail-power').innerText = device.powerW;
-            document.getElementById('detail-hours').innerText = device.hours;
-            document.getElementById('detail-status').innerText = device.isOn ? 'Đang bật' : 'Đã tắt';
-
-            document.getElementById('device-detail-modal').classList.remove('hidden');
-        }
-
-        function closeDeviceDetail() {
-            document.getElementById('device-detail-modal').classList.add('hidden');
-        }
-
-        // --- 2. XỬ LÝ DASHBOARD SMARTHOME ---
-
-        const ELECTRICITY_RATE = 2500; // VNĐ/kWh
-        let isEditMode = false;
-
-        let devices = [
-            // --- PHÒNG KHÁCH ---
-            { id: 101, name: "Đèn chùm phòng khách", room: "Phòng khách", type: "light", powerW: 100, hours: 5, isOn: true },
-            { id: 102, name: "Smart TV 55 inch", room: "Phòng khách", type: "tv", powerW: 150, hours: 4, isOn: false },
-            { id: 103, name: "Máy lạnh (Living)", room: "Phòng khách", type: "ac", powerW: 1200, hours: 3, isOn: true },
-
-            // --- PHÒNG NGỦ  ---
-            { id: 301, name: "Đèn trần PN2", room: "Phòng ngủ ", type: "light", powerW: 40, hours: 2, isOn: true },
-            { id: 302, name: "Quạt treo tường", room: "Phòng ngủ ", type: "ac", powerW: 60, hours: 6, isOn: true },
-
-            // --- PHÒNG BẾP ---
-            { id: 401, name: "Tủ lạnh Inverter", room: "Bếp", type: "fridge", powerW: 150, hours: 24, isOn: true },
-            { id: 402, name: "Lò vi sóng", room: "Bếp", type: "tv", powerW: 1000, hours: 0.5, isOn: false },
-
-            // --- PHÒNG TẮM ---
-            { id: 501, name: "Bình nóng lạnh", room: "Phòng tắm", type: "ac", powerW: 2500, hours: 1, isOn: false },
-            { id: 502, name: "Đèn gương", room: "Phòng tắm", type: "light", powerW: 15, hours: 1, isOn: true }
-        ];
-
-
-        // renderDevices();
-        // updateStats();
-
-        const articles = [
-            { title: '5 mẹo thiết lập máy lạnh tiết kiệm điện', category: 'Mẹo vặt', time: '5 phút', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=400&q=80' },
-            { title: 'Xu hướng nhà thông minh đáng chú ý', category: 'Công nghệ', time: '8 phút', img: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=80' },
-            { title: 'Cách bảo dưỡng thiết bị điện định kỳ', category: 'Bảo trì', time: '4 phút', img: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&q=80' }
-        ];
-
-        function initDashboard() {
-            renderArticles();
-            renderDevices();
-        }
-
-        // Render Bài viết
-        function renderArticles() {
-            const container = document.getElementById('articles-container');
-            container.innerHTML = articles.map(art => `
-                <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
-                    <div class="h-40 overflow-hidden relative">
-                        <img src="${art.img}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-700">${art.category}</div>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">${art.title}</h3>
-                        <div class="flex items-center text-sm text-gray-500">
-                            <i data-lucide="book-open" class="w-3.5 h-3.5 mr-1.5"></i> ${art.time}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        // Render Thiết bị
-        function renderDevices() {
-            const container = document.getElementById('devices-container');
-            container.innerHTML = devices.map(device => {
-                let iconName = 'power';
-                if (device.type === 'light') iconName = 'lightbulb';
-                else if (device.type === 'ac') iconName = 'wind';
-                else if (device.type === 'tv') iconName = 'tv';
-                else if (device.type === 'fridge') iconName = 'thermometer';
-
-                const bgClass = device.isOn
-                    ? 'bg-white border-blue-100 shadow-md shadow-blue-50/50'
-                    : 'bg-gray-50 border-gray-100 shadow-sm';
-
-                const iconBgClass = device.isOn
-                    ? 'bg-blue-50 text-blue-500'
-                    : 'bg-white text-gray-400 border border-gray-100';
-
-                return `
-            <div onclick="openDeviceDetail(${device.id})"
-                 class="relative p-5 rounded-2xl border transition-all duration-200 ${bgClass} cursor-pointer hover:scale-[1.02]">
-
-                ${isEditMode ? `
-                    <button onclick="event.stopPropagation(); deleteDevice(${device.id})"
-                        class="absolute -top-2 -right-2 w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white shadow-sm z-10">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                    </button>
-                ` : ''}
-
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-3 rounded-full ${iconBgClass}">
-                        <i data-lucide="${iconName}" class="w-6 h-6"></i>
-                    </div>
-
-                    <label class="flex items-center cursor-pointer">
-                        <div class="relative">
-                            <input type="checkbox"
-                                   onclick="event.stopPropagation()"
-                                   class="sr-only toggle-checkbox"
-                                   onchange="toggleDevice(${device.id})"
-                                   ${device.isOn ? 'checked' : ''}>
-                            <div class="toggle-label block w-12 h-7 rounded-full bg-gray-300 transition-colors duration-300">
-                                <div class="toggle-circle absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300"></div>
-                            </div>
-                        </div>
-                    </label>
-                </div>
-
-                <div>
-                    <h3 class="font-semibold text-base mb-1 ${device.isOn ? 'text-gray-800' : 'text-gray-500'}">
-                        ${device.name}
-                    </h3>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-400">${device.room}</span>
-                        <span class="font-medium ${device.isOn ? 'text-amber-500' : 'text-gray-400'}">
-                            ${device.isOn ? device.powerW + 'W' : 'Tắt'}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        `;
-            }).join('');
-
-            lucide.createIcons();
-            updateStats();
-        }
-
-        // Logic Dashboard
-        function toggleDevice(id) {
-            const device = devices.find(d => d.id === id);
-            if (device) device.isOn = !device.isOn;
-            renderDevices();
-        }
-
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const btn = document.getElementById('btn-edit-mode');
-            if (isEditMode) {
-                btn.classList.add('bg-blue-100', 'text-blue-700');
-                btn.querySelector('span').innerText = 'Hoàn tất';
-            } else {
-                btn.classList.remove('bg-blue-100', 'text-blue-700');
-                btn.querySelector('span').innerText = 'Quản lý';
-            }
-            renderDevices();
-        }
-
-        function deleteDevice(id) {
-            devices = devices.filter(d => d.id !== id);
-            renderDevices();
-        }
-
-        function updateStats() {
-            // Đảm bảo hằng số ELECTRICITY_RATE đã được khai báo ở đâu đó trong code
-            const ELECTRICITY_RATE = 2500;
-
-            const formatMoney = (n) =>
-                new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND'
-                }).format(n);
-
-            let totalPowerW = 0;
-            let totalKwh = 0;
-            let activeCount = 0;
-
-            // Duyệt danh sách thiết bị
-            devices.forEach(d => {
-                const power = Number(d.powerW) || 0;
-                const hours = Number(d.hours) || 0;
-
-                // Chỉ tính khi thiết bị đang ở trạng thái bật (isOn === true)
-                if (d.isOn) {
-                    totalPowerW += power;
-                    activeCount++;
-
-                    // Tính điện năng tiêu thụ trong 1 ngày: (W * Hours) / 1000
-                    const kwh = (power * hours) / 1000;
-                    totalKwh += kwh;
-                }
-            });
-
-            const todayCost = totalKwh * ELECTRICITY_RATE;
-            const monthlyCost = todayCost * 30;
-
-            // Cập nhật UI (có kiểm tra tồn tại của Element để tránh lỗi JavaScript)
-
-            // 1. Cập nhật Công suất (kW)
-            const powerElement = document.getElementById('stat-power');
-            if (powerElement) powerElement.innerText = (totalPowerW / 1000).toFixed(2);
-
-            // 2. Cập nhật Số lượng thiết bị đang bật
-            const activeDevElement = document.getElementById('stat-active-devices');
-            if (activeDevElement) activeDevElement.innerText = `${activeCount} thiết bị`;
-
-            // 3. Cập nhật Số kWh tiêu thụ
-            const kwhElement = document.getElementById('stat-kwh');
-            if (kwhElement) kwhElement.innerText = totalKwh.toFixed(2);
-
-            // 4. Cập nhật Tiền điện Hôm nay
-            const costTodayElement = document.getElementById('stat-cost-today');
-            if (costTodayElement) costTodayElement.innerText = formatMoney(todayCost);
-
-            // 5. Cập nhật Tiền điện Tháng này
-            const costMonthElement = document.getElementById('stat-cost-month');
-            if (costMonthElement) costMonthElement.innerText = formatMoney(monthlyCost);
-        }
-        function openStatsModal(title, contentHtml) {
-            document.getElementById('stats-title').innerText = title;
-            document.getElementById('stats-content').innerHTML = contentHtml;
-            document.getElementById('stats-detail-modal').classList.remove('hidden');
-        }
-
-        function closeStatsModal() {
-            document.getElementById('stats-detail-modal').classList.add('hidden');
-        }
-
-        // 1. Chi tiết Công suất
-        function showPowerDetail() {
-            let activeDevicesList = devices.filter(d => d.isOn);
-            let html = `<p class="text-gray-500 mb-4">Danh sách các thiết bị đang tiêu thụ điện thực tế:</p>`;
-
-            if (activeDevicesList.length === 0) {
-                html += `<div class="p-4 bg-gray-50 rounded-xl text-center text-gray-400">Không có thiết bị nào đang bật</div>`;
-            } else {
-                activeDevicesList.forEach(d => {
-                    html += `
-            <div class="flex justify-between items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
-                <span class="font-medium text-gray-700">${d.name}</span>
-                <span class="font-bold text-amber-600">${(d.powerW / 1000).toFixed(2)} kW</span>
-            </div>`;
-                });
-            }
-            openStatsModal("Phân bổ công suất", html);
-        }
-
-        // 2. Chi tiết Chi phí hôm nay
-        function showTodayDetail() {
-            let activeDevicesList = devices.filter(d => d.isOn);
-            let html = `<p class="text-gray-500 mb-4">Số tiền tạm tính dựa trên số giờ sử dụng hôm nay:</p>`;
-
-            activeDevicesList.forEach(d => {
-                let cost = (d.powerW * d.hours / 1000) * 2500;
-                html += `
-        <div class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
-            <div>
-                <div class="font-medium text-gray-700">${d.name}</div>
-                <div class="text-xs text-blue-400">${d.hours} giờ sử dụng</div>
-            </div>
-            <span class="font-bold text-blue-600">${new Intl.NumberFormat('vi-VN').format(cost)} ₫</span>
-        </div>`;
-            });
-            openStatsModal("Chi tiết chi phí hôm nay", html);
-        }
-
-        // 3. Chi tiết Dự toán tháng
-        function showMonthDetail() {
-            const totalToday = devices.filter(d => d.isOn).reduce((sum, d) => sum + ((d.powerW * d.hours / 1000) * 2500), 0);
-            const totalMonth = totalToday * 30;
-
-            let html = `
-    <div class="p-4 bg-slate-800 text-white rounded-2xl mb-4 text-center">
-        <div class="text-slate-400 text-sm">Dự báo hóa đơn tháng này</div>
-        <div class="text-3xl font-bold">${new Intl.NumberFormat('vi-VN').format(totalMonth)} ₫</div>
-    </div>
-    <div class="space-y-3">
-        <div class="flex justify-between text-sm"><span class="text-gray-500">Trung bình/ngày:</span> <span class="font-bold">${new Intl.NumberFormat('vi-VN').format(totalToday)} ₫</span></div>
-        <div class="flex justify-between text-sm"><span class="text-gray-500">Đơn giá điện:</span> <span class="font-bold text-green-600">2.500 ₫ / kWh</span></div>
-        <div class="flex justify-between text-sm"><span class="text-gray-500">Chu kỳ tính:</span> <span class="font-bold">30 ngày</span></div>
-    </div>
-    <p class="text-xs text-gray-400 mt-6 bg-gray-50 p-3 rounded-lg italic">
-        * Lưu ý: Con số này mang tính chất dự báo dựa trên thói quen ghi nhật ký. Hãy tắt các thiết bị khi không sử dụng để giảm hóa đơn.
-    </p>`;
-            openStatsModal("Dự báo tài chính", html);
-        }
-
-        // Logic Thêm Thiết bị (Modal)
-        function openAddModal() {
-            document.getElementById('add-modal').classList.remove('hidden');
-        }
-
-        function closeAddModal() {
-            document.getElementById('add-modal').classList.add('hidden');
-        }
-
-        function submitAddDevice() {
-            const name = document.getElementById('new-device-name').value;
-            const room = document.getElementById('new-device-room').value;
-            const type = document.getElementById('new-device-type').value;
-            const powerW = document.getElementById('new-device-power').value;
-            const hours = document.getElementById('new-device-hours').value; // ✅ thêm dòng này
-
-            if (name && powerW) {
-                devices.push({
-                    id: Date.now(),
-                    name,
-                    room,
-                    type,
-                    isOn: false,
-                    powerW: Number(powerW),
-                    hours: Number(hours) || 0 // ✅ giờ đúng rồi
-                });
-
-                closeAddModal();
-
-                // reset
-                document.getElementById('new-device-name').value = '';
-                document.getElementById('new-device-power').value = '';
-                document.getElementById('new-device-hours').value = ''; // thêm
-
-                renderDevices();
-            }
-        }
-        function togglePassword(inputId, icon) {
-            const input = document.getElementById(inputId);
-
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.remove("fa-eye");
-                icon.classList.add("fa-eye-slash");
-            } else {
-                input.type = "password";
-                icon.classList.remove("fa-eye-slash");
-                icon.classList.add("fa-eye");
-            }
-        }
-
-        //ve bieu do thong ke dien
-
-        let myChart = null; // Biến lưu trữ đối tượng biểu đồ để xóa/vẽ lại
-
-        function showEnergyChart() {
-            const modal = document.getElementById('chart-modal');
-            modal.classList.remove('hidden');
-
-            // 1. Chuẩn bị dữ liệu từ mảng devices
-            const activeDevices = devices.filter(d => d.isOn && d.powerW > 0);
-            const labels = activeDevices.map(d => d.name);
-            const dataValues = activeDevices.map(d => (d.powerW * d.hours / 1000).toFixed(2)); // Tính kWh
-
-            // Nếu không có thiết bị nào bật, thông báo cho người dùng
-            if (activeDevices.length === 0) {
-                document.getElementById('chart-legend').innerHTML = `<p class="text-center text-gray-400">Chưa có dữ liệu. Hãy bật thiết bị để xem thống kê!</p>`;
-                return;
-            }
-
-            // 2. Xóa biểu đồ cũ nếu đã tồn tại (để tránh lỗi ghi đè)
-            if (myChart) {
-                myChart.destroy();
-            }
-
-            // 3. Vẽ biểu đồ mới
-            const ctx = document.getElementById('energyPieChart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: 'doughnut', // Loại biểu đồ tròn (khuyết giữa cho đẹp)
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: dataValues,
-                        backgroundColor: [
-                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
-                        ],
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: { display: false } // Tắt chú thích mặc định để tự làm chú thích custom
-                    },
-                    cutout: '70%' // Độ dày của vòng tròn
-                }
-            });
-
-            // 4. Tạo chú thích (Legend) tùy chỉnh bên dưới biểu đồ
-            let legendHtml = '';
-            activeDevices.forEach((d, index) => {
-                const kwh = (d.powerW * d.hours / 1000).toFixed(2);
-                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-                legendHtml += `
-            <div class="flex justify-between items-center text-sm">
-                <div class="flex items-center">
-                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${colors[index % colors.length]}"></span>
-                    <span class="text-gray-600">${d.name}</span>
-                </div>
-                <span class="font-bold text-gray-800">${kwh} kWh</span>
-            </div>
-        `;
-            });
-            document.getElementById('chart-legend').innerHTML = legendHtml;
-        }
-
-        function closeChartModal() {
-            document.getElementById('chart-modal').classList.add('hidden');
-        }
-
-        // quen mat khau
-        async function doForgotPassword() {
-            const email = document.getElementById('forgot-email').value;
-
-            localStorage.setItem('resetEmail', email);
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/forgot-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('OTP đã gửi về email!');
-                    switchAuthForm('otp-form');
-                } else {
-                    alert('Lỗi: ' + (result.message || 'Không gửi được OTP'));
-                }
-
-            } catch (error) {
-                alert('Lỗi server');
-                console.error(error);
-            }
-        }
-
-        async function doVerifyOTP() {
-            const email = localStorage.getItem('resetEmail');
-            const otp = document.getElementById('otp-code').value;
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/verify-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, otp })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('OTP đúng!');
-                    switchAuthForm('reset-password-form');
-                } else {
-                    alert('OTP sai hoặc hết hạn');
-                }
-
-            } catch (error) {
-                alert('Lỗi server');
-                console.error(error);
-            }
-        }
-
-        async function doResetPassword() {
-            const email = localStorage.getItem('resetEmail');
-            const password = document.getElementById('reset-password').value;
-            const confirm = document.getElementById('reset-confirm-password').value;
-            const otp = document.getElementById('otp-code').value;
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
-
-            if (!passwordRegex.test(password)) {
-                alert('Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt');
-                return;
-            }
-
-            if (password !== confirm) {
-                alert('Mật khẩu không khớp');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/reset-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: email,
-                        otp: otp,
-                        newPassword: password
-                    })
-                });
-
-                const result = await parseApiResponse(response);
-                if (response.ok) {
-                    alert('Đổi mật khẩu thành công!');
-                    switchAuthForm('login-form');
-                } else {
-                    alert(result.message || 'Mật khẩu mới không được trùng mật khẩu cũ');
-                }
-
-            } catch (error) {
-                alert('Lỗi server');
-                console.error(error);
-            }
-        }
-
-        //thong ke phong oc
-        let roomChart = null;
-
-        function showRoomStats() {
-            const modal = document.getElementById('room-stats-modal');
-            modal.classList.remove('hidden');
-
-            // 1. Gom nhóm dữ liệu theo phòng
-            const roomData = {};
-            devices.forEach(d => {
-                if (!roomData[d.room]) {
-                    roomData[d.room] = 0;
-                }
-                if (d.isOn) {
-                    // Tính tiền của từng thiết bị trong phòng đó
-                    const cost = (d.powerW * d.hours / 1000) * 2500;
-                    roomData[d.room] += cost;
-                }
-            });
-
-            const labels = Object.keys(roomData);
-            const values = Object.values(roomData);
-
-            // 2. Vẽ biểu đồ cột ngang bằng Chart.js
-            const ctx = document.getElementById('roomBarChart').getContext('2d');
-            if (roomChart) roomChart.destroy();
-
-            roomChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Tiền điện (VNĐ)',
-                        data: values,
-                        backgroundColor: '#10b981', // Màu xanh lá cây cho thân thiện
-                        borderRadius: 8,
-                        barThickness: 20
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', // Xoay ngang biểu đồ
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { beginAtZero: true, grid: { display: false } },
-                        y: { grid: { display: false } }
-                    }
-                }
-            });
-
-            // 3. Hiển thị text chi tiết bên dưới
-            let detailHtml = '';
-            labels.forEach((room, index) => {
-                detailHtml += `
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                <span class="text-sm font-medium text-gray-600">${room}</span>
-                <span class="font-bold text-gray-800">${new Intl.NumberFormat('vi-VN').format(values[index])} ₫</span>
-            </div>
-        `;
-            });
-            document.getElementById('room-details').innerHTML = detailHtml;
-        }
-
-        function closeRoomModal() {
-            document.getElementById('room-stats-modal').classList.add('hidden');
-        }
-
-        //click de out
-        window.onclick = function (event) {
-            // Danh sách các ID của lớp nền (Overlay)
-            const modalOverlays = [
-                'chart-modal',
-                'room-stats-modal',
-                'stats-detail-modal',
-                'device-detail-modal',
-                'add-modal'
-            ];
-
-            modalOverlays.forEach(id => {
-                const modal = document.getElementById(id);
-                // Nếu người dùng click trúng vào đúng cái lớp nền (chứ không phải nội dung bên trong)
-                if (event.target == modal) {
-                    modal.classList.add('hidden');
-                }
-            });
-        }
-
-        // Khởi tạo icon ban đầu
-        lucide.createIcons();
-    </script>
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/profile.js"></script>
+    <script src="/js/dashboard.js"></script>
 </body>
 
 </html>
+
