@@ -1,3 +1,41 @@
+function resolveApiBase() {
+  if (window.App && window.App.API_BASE) {
+    return window.App.API_BASE;
+  }
+  if (window.API_BASE) {
+    return window.API_BASE;
+  }
+  return (window.location.port === '5173' || window.location.port === '4173')
+    ? 'http://localhost:8080/api/v1'
+    : '/api/v1';
+}
+
+function setLoadingSafe(button, isLoading, loadingText, defaultText) {
+  if (typeof window.setButtonLoading === 'function') {
+    window.setButtonLoading(button, isLoading, loadingText, defaultText);
+    return;
+  }
+
+  if (!button) return;
+  button.disabled = isLoading;
+  button.style.opacity = isLoading ? '0.8' : '1';
+  button.style.cursor = isLoading ? 'not-allowed' : 'pointer';
+  button.textContent = isLoading ? loadingText : defaultText;
+}
+
+async function parseApiResponseSafe(response) {
+  if (typeof window.parseApiResponse === 'function') {
+    return window.parseApiResponse(response);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  const text = await response.text();
+  return { message: text };
+}
+
 window.switchDashboardTab = function switchDashboardTab(tabId) {
   const overviewContent = document.getElementById('overview-content');
   const profileContent = document.getElementById('profile-page-content');
@@ -66,6 +104,7 @@ window.submitChangePassword = async function submitChangePassword() {
   const newPassword = document.getElementById('quick-new-password')?.value;
   const submitBtn = document.querySelector('#quick-profile-modal form button[type="submit"]');
   const token = localStorage.getItem('token');
+  const apiBase = resolveApiBase();
 
   if (!token) {
     alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
@@ -85,10 +124,10 @@ window.submitChangePassword = async function submitChangePassword() {
     return;
   }
 
-  window.setButtonLoading(submitBtn, true, 'Đang đổi mật khẩu...', 'Xác nhận đổi mật khẩu');
+  setLoadingSafe(submitBtn, true, 'Đang đổi mật khẩu...', 'Xác nhận đổi mật khẩu');
 
   try {
-    const response = await fetch(`${window.App.API_BASE}/auth/change-password`, {
+    const response = await fetch(`${apiBase}/auth/change-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,7 +136,7 @@ window.submitChangePassword = async function submitChangePassword() {
       body: JSON.stringify({ oldPassword, newPassword })
     });
 
-    const result = await window.parseApiResponse(response);
+    const result = await parseApiResponseSafe(response);
     if (!response.ok) {
       alert(result.message || 'Đổi mật khẩu thất bại');
       return;
@@ -110,7 +149,7 @@ window.submitChangePassword = async function submitChangePassword() {
     console.error(error);
     alert('Lỗi kết nối server');
   } finally {
-    window.setButtonLoading(submitBtn, false, 'Đang đổi mật khẩu...', 'Xác nhận đổi mật khẩu');
+    setLoadingSafe(submitBtn, false, 'Đang đổi mật khẩu...', 'Xác nhận đổi mật khẩu');
   }
 };
 
