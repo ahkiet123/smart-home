@@ -98,7 +98,7 @@ public class AuthService {
     @Transactional
     public void sendOTP(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Email not found"));
+                .orElseThrow(() -> new BadRequestException("Email chưa đăng ký"));
 
         String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
 
@@ -117,7 +117,7 @@ public class AuthService {
     @Transactional
     public void verifyOTP(String email, String otp) {
         PasswordResetOTP otpEntity = otpRepository.findByEmailAndOtp(email, otp)
-                .orElseThrow(() -> new BadRequestException("Invalid OTP"));
+                .orElseThrow(() -> new BadRequestException("OTP không hợp lệ"));
 
         if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("OTP expired");
