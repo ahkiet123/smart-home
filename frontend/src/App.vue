@@ -1,26 +1,5 @@
-<script setup>
-import ElectricityCalculator from './components/ElectricityCalculator.vue'
-</script>
-
 <template>
-  <div class="full-page-wrapper">
-    <header class="main-header">
-      <div class="header-content">
-        <h1>☘️ SMART HOME ENERGY</h1>
-        <div class="sub-text"></div>
-      </div>
-    </header>
-
-    <main class="main-body">
-      <div class="container-expanded">
-        <ElectricityCalculator />
-      </div>
-    </main>
-
-    <footer class="main-footer">
-      <p>&copy; Nhóm Đồ Án Phát Triển Phần Mềm </p>
-    </footer>
-  </div>
+  <router-view />
 </template>
 
 <style>
@@ -50,7 +29,7 @@ import ElectricityCalculator from './components/ElectricityCalculator.vue'
   color: white;
   padding: 40px 20px;
   text-align: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .main-header h1 {
@@ -65,7 +44,6 @@ import ElectricityCalculator from './components/ElectricityCalculator.vue'
   display: flex;
   justify-content: center;
 }
-
 
 .container-expanded {
   width: 100%;
@@ -83,6 +61,6 @@ import ElectricityCalculator from './components/ElectricityCalculator.vue'
 
 /* Đảm bảo font chữ Inter hoặc Sans-serif cho sạch */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 </style>
