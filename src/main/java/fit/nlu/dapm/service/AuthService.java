@@ -3,6 +3,7 @@ package fit.nlu.dapm.service;
 import fit.nlu.dapm.dto.auth.AuthResponse;
 import fit.nlu.dapm.dto.auth.ChangePasswordRequest;
 import fit.nlu.dapm.dto.auth.LoginRequest;
+import fit.nlu.dapm.dto.auth.RegisterOtpRequest;
 import fit.nlu.dapm.dto.auth.RegisterRequest;
 import fit.nlu.dapm.entity.PasswordResetOTP;
 import fit.nlu.dapm.entity.Role;
@@ -52,7 +53,7 @@ public class AuthService {
     private EmailService emailService;
 
     public AuthResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail())
+        userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("EMAIL_NOT_FOUND"));
 
         try {
@@ -79,10 +80,44 @@ public class AuthService {
             throw new BadRequestException("Email address already in use.");
         }
 
+        if (!registerRequest.getPassword().matches(PASSWORD_POLICY_REGEX)) {
+            throw new BadRequestException("Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt và tối thiểu 6 ký tự");
+        }
+
+        String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
+
+        otpRepository.deleteByEmail(registerRequest.getEmail());
+
+        PasswordResetOTP otpEntity = new PasswordResetOTP();
+        otpEntity.setEmail(registerRequest.getEmail());
+        otpEntity.setOtp(otp);
+        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+
+        otpRepository.save(otpEntity);
+        emailService.sendOTP(registerRequest.getEmail(), otp, "dang ky tai khoan");
+    }
+
+    @Transactional
+    public void verifyRegistrationOTP(RegisterOtpRequest request) {
+        PasswordResetOTP otpEntity = otpRepository.findByEmailAndOtp(request.getEmail(), request.getOtp())
+                .orElseThrow(() -> new BadRequestException("OTP không hợp lệ"));
+
+        if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("OTP đã hết hạn");
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email address already in use.");
+        }
+
+        if (!request.getPassword().matches(PASSWORD_POLICY_REGEX)) {
+            throw new BadRequestException("Mật khẩu phải có chữ hoa, chữ thường, số, ký tự đặc biệt và tối thiểu 6 ký tự");
+        }
+
         User user = new User();
-        user.setFullName(registerRequest.getFullName());
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Role userRole = roleRepository.findByRoleName("USER").orElseGet(() -> {
             Role newRole = new Role();
@@ -93,11 +128,12 @@ public class AuthService {
         user.setRole(userRole);
 
         userRepository.save(user);
+        otpRepository.delete(otpEntity);
     }
     // gửi otp
     @Transactional
     public void sendOTP(String email) {
-        User user = userRepository.findByEmail(email)
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("Email chưa đăng ký"));
 
         String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
@@ -111,7 +147,7 @@ public class AuthService {
 
         otpRepository.save(otpEntity);
 
-        emailService.sendOTP(email, otp);
+        emailService.sendOTP(email, otp, "quen mat khau");
     }
     //verify
     @Transactional

@@ -2,9 +2,11 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import API_BASE from "../../services/api";
+import RegisterOtpForm from "../../components/auth/RegisterOtpForm.vue";
 
 const router = useRouter();
 
+const step = ref(1);
 const fullName = ref("");
 const email = ref("");
 const password = ref("");
@@ -13,7 +15,18 @@ const loading = ref(false);
 const showPassword = ref(false);
 const showConfirm = ref(false);
 
-const doRegister = async () => {
+const parseApiResponse = async (response) => {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    return await response.json();
+  }
+
+  const text = await response.text();
+  return { message: text };
+};
+
+const submitRegister = async () => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
 
   if (!passwordRegex.test(password.value)) {
@@ -41,21 +54,17 @@ const doRegister = async () => {
       }),
     });
 
-    const text = await response.text();
+    const result = await parseApiResponse(response);
 
     if (!response.ok) {
-      if (text.includes("Email address already in use")) {
-        alert("Email đã tồn tại!");
-      } else {
-        alert("Đăng ký thất bại: " + text);
-      }
+      alert(result.message || "Đăng ký thất bại");
       return;
     }
 
-    alert("Đăng ký thành công!");
-
-    // 👉 quay về login
-    router.push("/login");
+    alert(
+      "Đăng ký thông tin thành công. Vui lòng nhập OTP đã gửi tới email của bạn",
+    );
+    step.value = 2;
   } catch (error) {
     alert("Lỗi server");
     console.error(error);
@@ -64,16 +73,21 @@ const doRegister = async () => {
   }
 };
 
+const handleRegistered = () => {
+  alert("Đăng ký thành công!");
+  router.push("/login");
+};
+
 const goToLogin = () => router.push("/login");
 </script>
 
 <template>
   <div id="auth-view">
     <div class="auth-container">
-      <div class="auth-form">
+      <div v-if="step === 1" class="auth-form">
         <h2>Tạo Tài Khoản</h2>
 
-        <form @submit.prevent="doRegister">
+        <form @submit.prevent="submitRegister">
           <div class="form-group">
             <label>Họ và Tên</label>
             <input
@@ -144,10 +158,19 @@ const goToLogin = () => router.push("/login");
           </button>
 
           <div class="links text-center">
-            Đã có tài khoản? <a @click="goToLogin" class="ps-1"> Đăng nhập ngay</a>
+            Đã có tài khoản?
+            <a @click="goToLogin" class="ps-1"> Đăng nhập ngay</a>
           </div>
         </form>
       </div>
+
+      <RegisterOtpForm
+        v-else
+        :full-name="fullName"
+        :email="email"
+        :password="password"
+        @verified="handleRegistered"
+      />
     </div>
   </div>
 </template>
