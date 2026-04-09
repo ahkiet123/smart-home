@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -35,7 +33,13 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         authService.register(registerRequest);
-        return new ResponseEntity<>(ApiResponse.success("Registration successful", null), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResponse.success("OTP sent to email", null), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/register/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyRegisterOTP(@Valid @RequestBody RegisterOtpRequest request) {
+        authService.verifyRegistrationOTP(request);
+        return ResponseEntity.ok(ApiResponse.success("Registration successful", null));
     }
 
     @PostMapping("/forgot-password")
