@@ -262,6 +262,27 @@ onMounted(async () => {
           Tổng quan
         </RouterLink>
         <RouterLink
+          to="/home"
+          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="home" class="mr-3 w-5 h-5"></i>
+          Phòng ốc
+        </RouterLink>
+        <RouterLink
+          to="/home"
+          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="activity" class="mr-3 w-5 h-5"></i>
+          Thống kê điện
+        </RouterLink>
+        <RouterLink
+          to="/home"
+          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="user" class="mr-3 w-5 h-5"></i>
+          Hồ sơ cá nhân
+        </RouterLink>
+        <RouterLink
           to="/blog"
           class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors"
         >
@@ -285,17 +306,9 @@ onMounted(async () => {
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
       <header class="h-16 bg-white border-b border-gray-200 sticky top-0 z-40">
         <div class="w-full h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <RouterLink
-              to="/home"
-              class="flex items-center gap-2 hover:opacity-80 transition-opacity"
-              title="Về Dashboard"
-            >
-              <i data-lucide="zap" class="text-blue-600 w-7 h-7"></i>
-              <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
-                SmartHome
-              </span>
-            </RouterLink>
+          <div class="flex items-center gap-2">
+            <i data-lucide="book-open" class="text-blue-600 w-6 h-6"></i>
+            <h2 class="text-lg font-semibold text-gray-800">Blog</h2>
           </div>
 
           <nav class="flex items-center gap-4">
