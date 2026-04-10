@@ -3,7 +3,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import LoginView from "../views/auth/LoginView.vue";
 import RegisterView from "../views/auth/RegisterView.vue";
 import ForgotPasswordView from "../views/auth/ForgotPasswordView.vue";
-import DeviceManager from "../views/device/DeviceManager.vue";
+import HomeView from "../views/home.vue";
+import BlogView from "../views/BlogView.vue";
 
 const routes = [
   {
@@ -23,9 +24,29 @@ const routes = [
     component: ForgotPasswordView,
   },
   {
-    path: "/devices",
-    component: DeviceManager,
-  }
+    path: "/home",
+    component: HomeView,
+    beforeEnter: () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return "/login";
+      }
+
+      return true;
+    },
+  },
+  {
+    path: "/blog",
+    component: BlogView,
+    beforeEnter: () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return "/login";
+      }
+
+      return true;
+    },
+  },
 ];
 
 const router = createRouter({

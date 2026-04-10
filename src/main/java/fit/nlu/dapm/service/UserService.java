@@ -4,6 +4,7 @@ import fit.nlu.dapm.dto.user.UpdateProfileRequest;
 import fit.nlu.dapm.dto.user.UserProfileResponse;
 import fit.nlu.dapm.entity.User;
 import fit.nlu.dapm.entity.UserProfile;
+import fit.nlu.dapm.exception.BadRequestException;
 import fit.nlu.dapm.exception.ResourceNotFoundException;
 import fit.nlu.dapm.mapper.GenericMapper;
 import fit.nlu.dapm.repository.UserProfileRepository;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
+
+    private static final String PHONE_REGEX = "^(0|\\+84)(3|5|7|8|9)\\d{8}$";
 
     @Autowired
     private UserRepository userRepository;
@@ -48,8 +51,37 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        user.setFullName(request.getFullName());
-        user.setPhone(request.getPhone());
+        String nextFullName = request.getFullName() == null ? "" : request.getFullName().trim();
+        String nextPhone = request.getPhone() == null ? "" : request.getPhone().trim();
+
+        if (nextFullName.isBlank()) {
+            throw new BadRequestException("Họ và tên không được để trống");
+        }
+
+        if (!nextPhone.isBlank() && !nextPhone.matches(PHONE_REGEX)) {
+            throw new BadRequestException("Số điện thoại không hợp lệ (định dạng VN)");
+        }
+
+        String currentFullName = user.getFullName() == null ? "" : user.getFullName().trim();
+        String currentPhone = user.getPhone() == null ? "" : user.getPhone().trim();
+
+        boolean fullNameUnchanged = currentFullName.equals(nextFullName);
+        boolean phoneUnchanged = currentPhone.equals(nextPhone);
+        if (fullNameUnchanged && phoneUnchanged) {
+            throw new BadRequestException("Thông tin chưa thay đổi");
+        }
+
+        if (!nextPhone.isBlank()) {
+            boolean phoneUsedByAnotherUser = Boolean.TRUE.equals(
+                    userRepository.existsByPhoneAndIdNot(nextPhone, userId)
+            );
+            if (phoneUsedByAnotherUser) {
+                throw new BadRequestException("Số điện thoại đã được sử dụng");
+            }
+        }
+
+        user.setFullName(nextFullName);
+        user.setPhone(nextPhone.isBlank() ? null : nextPhone);
 
         UserProfile profile = user.getProfile();
         if (profile == null) {
