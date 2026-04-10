@@ -1,6 +1,9 @@
 window.initDashboard = function initDashboard() {
   window.renderArticles();
   window.renderDevices();
+  if (typeof window.loadUserProfile === 'function') {
+    window.loadUserProfile();
+  }
   if (window.switchDashboardTab) {
     window.switchDashboardTab('overview');
   }
