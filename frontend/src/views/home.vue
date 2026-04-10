@@ -72,9 +72,12 @@ onUnmounted(() => {
            class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors cursor-pointer">
           <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
         </a>
-        <RouterLink to="/calculator"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-xl font-medium transition-colors">
-          <i data-lucide="calculator" class="mr-3 w-5 h-5"></i> Máy tính điện
+        <RouterLink
+            to="/calculator"
+            class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="calculator" class="mr-3 w-5 h-5"></i>
+          Máy tính điện
         </RouterLink>
         <a href="#" @click.prevent="switchDashboardTab('profile-page')"
            :class="[currentTab === 'profile-page' ? 'text-blue-700 bg-blue-50' : 'text-gray-600 hover:bg-gray-50']"
