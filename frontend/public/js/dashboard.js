@@ -1,9 +1,451 @@
 window.initDashboard = function initDashboard() {
   window.renderArticles();
   window.renderDevices();
+  if (typeof window.loadGlobalEnergyOverview === 'function') {
+    window.loadGlobalEnergyOverview();
+  }
+  if (typeof window.loadUserProfile === 'function') {
+    window.loadUserProfile();
+  }
   if (window.switchDashboardTab) {
     window.switchDashboardTab('overview');
   }
+};
+
+function formatCurrencyVnd(value) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
+}
+
+function formatNumber(value) {
+  return Number(value || 0).toFixed(2);
+}
+
+function toVietnameseDisplayName(name) {
+  if (!name) return 'Không rõ';
+
+  const normalized = String(name)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+  const dictionary = {
+    'phong khach': 'Phòng khách',
+    'phong ngu': 'Phòng ngủ',
+    'bep': 'Bếp',
+    'phong tam': 'Phòng tắm',
+    'dieu hoa': 'Điều hòa',
+    'tu lanh': 'Tủ lạnh',
+    'may giat': 'Máy giặt'
+  };
+
+  return dictionary[normalized] || name;
+}
+
+window.loadGlobalEnergyOverview = async function loadGlobalEnergyOverview() {
+  const token = localStorage.getItem('token');
+  const loading = document.getElementById('global-energy-loading');
+  const empty = document.getElementById('global-energy-empty');
+
+  if (!token) return;
+
+  if (loading) loading.classList.remove('hidden');
+  if (empty) empty.classList.add('hidden');
+
+  try {
+    const today = new Date();
+    const currentFrom = new Date(today.getFullYear(), today.getMonth(), 1);
+    const currentTo = today;
+
+    const prevMonthFirst = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const daysInPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    const prevMonthLastComparedDay = Math.min(today.getDate(), daysInPrevMonth);
+    const prevMonthTo = new Date(today.getFullYear(), today.getMonth() - 1, prevMonthLastComparedDay);
+
+    const currentFromStr = currentFrom.toISOString().split('T')[0];
+    const currentToStr = currentTo.toISOString().split('T')[0];
+    const prevFromStr = prevMonthFirst.toISOString().split('T')[0];
+    const prevToStr = prevMonthTo.toISOString().split('T')[0];
+
+    const [currentResponse, prevResponse] = await Promise.all([
+      fetch(`${window.App.API_BASE}/energy/analytics/daily?fromDate=${currentFromStr}&toDate=${currentToStr}&groupBy=room`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+      fetch(`${window.App.API_BASE}/energy/analytics/daily?fromDate=${prevFromStr}&toDate=${prevToStr}&groupBy=room`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    ]);
+
+    const currentResult = typeof window.parseApiResponse === 'function'
+      ? await window.parseApiResponse(currentResponse)
+      : await currentResponse.json();
+
+    if (!currentResponse.ok) {
+      return;
+    }
+
+    const prevResult = typeof window.parseApiResponse === 'function'
+      ? await window.parseApiResponse(prevResponse)
+      : await prevResponse.json();
+
+    const data = currentResult?.data || {};
+    const previousMonthData = prevResponse.ok ? (prevResult?.data || {}) : {};
+    const series = Array.isArray(data.dailySeries) ? data.dailySeries : [];
+    const hasData = series.some((item) => Number(item.kwh || 0) > 0);
+
+    const totalKwh = document.getElementById('global-total-kwh');
+    const totalCost = document.getElementById('global-total-cost');
+    const delta = document.getElementById('global-delta');
+
+    if (totalKwh) totalKwh.innerText = formatNumber(data.totalKwh);
+    if (totalCost) totalCost.innerText = formatCurrencyVnd(data.totalEstimatedCost);
+
+    const currentTotal = Number(data.totalKwh || 0);
+    const previousTotal = Number(previousMonthData.totalKwh || 0);
+    const deltaKwh = currentTotal - previousTotal;
+    const deltaPercent = previousTotal > 0
+      ? `${((deltaKwh / previousTotal) * 100).toFixed(2)}%`
+      : (currentTotal > 0 ? '100.00%' : '0.00%');
+    if (delta) {
+      const symbol = deltaKwh > 0 ? '▲' : deltaKwh < 0 ? '▼' : '•';
+      delta.innerText = `${symbol} ${formatNumber(deltaKwh)} kWh (${deltaPercent})`;
+    }
+
+    if (!hasData) {
+      if (empty) empty.classList.remove('hidden');
+      if (window.App.globalEnergyChart) {
+        window.App.globalEnergyChart.destroy();
+        window.App.globalEnergyChart = null;
+      }
+      return;
+    }
+
+    const canvas = document.getElementById('global-energy-chart');
+    if (!canvas) return;
+
+    if (window.App.globalEnergyChart) {
+      window.App.globalEnergyChart.destroy();
+    }
+
+    const labels = series.map((item) => new Date(item.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }));
+    const values = series.map((item) => Number(item.kwh || 0));
+    const ctx = canvas.getContext('2d');
+    window.App.globalEnergyChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.15)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } },
+        maintainAspectRatio: false
+      }
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    if (loading) loading.classList.add('hidden');
+  }
+};
+
+function setEnergyButtonActive(activeId, buttonIds) {
+  buttonIds.forEach((id) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+
+    if (id === activeId) {
+      button.className = 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700';
+    } else {
+      button.className = 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600';
+    }
+  });
+}
+
+function setDailyEnergyUiState({ loading = false, error = '', empty = false }) {
+  const loadingBox = document.getElementById('daily-loading-state');
+  const errorBox = document.getElementById('daily-error-state');
+  const emptyBox = document.getElementById('daily-empty-state');
+  const chartSection = document.getElementById('daily-chart-section');
+
+  if (loadingBox) loadingBox.classList.toggle('hidden', !loading);
+
+  if (errorBox) {
+    errorBox.textContent = error;
+    errorBox.classList.toggle('hidden', !error);
+  }
+
+  if (emptyBox) emptyBox.classList.toggle('hidden', !empty);
+  if (chartSection) chartSection.classList.toggle('hidden', empty || Boolean(error));
+}
+
+function updateDailySummary(data) {
+  const totalKwh = document.getElementById('daily-total-kwh');
+  const totalCost = document.getElementById('daily-total-cost');
+  const dayDelta = document.getElementById('daily-day-delta');
+
+  if (totalKwh) totalKwh.innerText = formatNumber(data.totalKwh);
+  if (totalCost) totalCost.innerText = formatCurrencyVnd(data.totalEstimatedCost);
+
+  const deltaKwh = Number(data.lastDayDeltaKwh || 0);
+  const deltaPercent = data.lastDayDeltaPercent;
+
+  if (dayDelta) {
+    const arrow = deltaKwh > 0 ? '▲' : deltaKwh < 0 ? '▼' : '•';
+    const percentText = typeof deltaPercent === 'number' ? `${deltaPercent.toFixed(2)}%` : 'N/A';
+    dayDelta.innerText = `${arrow} ${formatNumber(deltaKwh)} kWh (${percentText})`;
+
+    if (deltaKwh > 0) {
+      dayDelta.className = 'text-lg font-bold text-red-600';
+    } else if (deltaKwh < 0) {
+      dayDelta.className = 'text-lg font-bold text-emerald-600';
+    } else {
+      dayDelta.className = 'text-lg font-bold text-slate-800';
+    }
+  }
+}
+
+function renderDailyEnergyChart(dailySeries) {
+  const chartCanvas = document.getElementById('daily-energy-chart');
+  if (!chartCanvas) return;
+
+  const labels = dailySeries.map((point) => {
+    const date = new Date(point.date);
+    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+  });
+  const values = dailySeries.map((point) => Number(point.kwh || 0));
+
+  if (window.App.dailyEnergyChart) {
+    window.App.dailyEnergyChart.destroy();
+  }
+
+  const ctx = chartCanvas.getContext('2d');
+  window.App.dailyEnergyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'kWh / ngày',
+        data: values,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'kWh' }
+        }
+      }
+    }
+  });
+}
+
+function renderDailyBreakdown(data) {
+  const title = document.getElementById('daily-breakdown-title');
+  const list = document.getElementById('daily-breakdown-list');
+  if (!list || !title) return;
+
+  const isDevice = data.breakdownType === 'device';
+  title.innerText = isDevice ? 'Top thiết bị tiêu thụ' : 'Top phòng tiêu thụ';
+
+  const breakdown = Array.isArray(data.breakdown) ? data.breakdown : [];
+  if (breakdown.length === 0) {
+    list.innerHTML = '<div class="p-3 rounded-xl bg-gray-50 text-gray-500 text-sm">Không có dữ liệu breakdown trong khoảng thời gian này.</div>';
+    return;
+  }
+
+  list.innerHTML = breakdown.map((item, index) => `
+    <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50">
+      <div>
+        <div class="text-sm font-semibold text-gray-800">#${index + 1} ${item.name || 'N/A'}</div>
+        <div class="text-xs text-gray-500">${formatNumber(item.kwh)} kWh</div>
+      </div>
+      <div class="text-sm font-bold text-blue-700">${formatCurrencyVnd(item.estimatedCost)}</div>
+    </div>
+  `).join('');
+}
+
+window.loadDailyEnergyAnalytics = async function loadDailyEnergyAnalytics() {
+  const token = localStorage.getItem('token');
+  const fromDate = document.getElementById('energy-from-date')?.value;
+  const toDate = document.getElementById('energy-to-date')?.value;
+
+  if (!token) {
+    setDailyEnergyUiState({ error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' });
+    return;
+  }
+
+  if (!fromDate || !toDate) {
+    setDailyEnergyUiState({ error: 'Vui lòng chọn khoảng ngày hợp lệ.' });
+    return;
+  }
+
+  setDailyEnergyUiState({ loading: true });
+
+  try {
+    const groupBy = window.App.dailyEnergyBreakdownType || 'room';
+    const params = new URLSearchParams({ fromDate, toDate, groupBy });
+
+    const response = await fetch(`${window.App.API_BASE}/energy/analytics/daily?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const result = typeof window.parseApiResponse === 'function'
+      ? await window.parseApiResponse(response)
+      : await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        window.doLogout();
+        return;
+      }
+
+      const errorMessage = result?.message || result?.error || 'Không tải được dữ liệu điện năng theo ngày.';
+      setDailyEnergyUiState({ error: errorMessage });
+      return;
+    }
+
+    const data = result?.data || {};
+    const dailySeries = Array.isArray(data.dailySeries) ? data.dailySeries : [];
+    const hasData = dailySeries.some((point) => Number(point.kwh || 0) > 0);
+
+    updateDailySummary(data);
+    renderDailyBreakdown(data);
+
+    if (!hasData) {
+      setDailyEnergyUiState({ empty: true });
+      return;
+    }
+
+    renderDailyEnergyChart(dailySeries);
+    setDailyEnergyUiState({});
+  } catch (error) {
+    console.error(error);
+    setDailyEnergyUiState({ error: 'Lỗi kết nối server khi tải dữ liệu điện năng.' });
+  } finally {
+    const loadingBox = document.getElementById('daily-loading-state');
+    if (loadingBox) loadingBox.classList.add('hidden');
+  }
+};
+
+window.setEnergyPresetDays = function setEnergyPresetDays(days) {
+  const toDate = new Date();
+  const fromDate = new Date();
+  fromDate.setDate(toDate.getDate() - (days - 1));
+
+  const fromInput = document.getElementById('energy-from-date');
+  const toInput = document.getElementById('energy-to-date');
+
+  if (fromInput) fromInput.value = fromDate.toISOString().split('T')[0];
+  if (toInput) toInput.value = toDate.toISOString().split('T')[0];
+
+  window.App.dailyEnergyPresetDays = days;
+  setEnergyButtonActive(`energy-preset-${days}`, ['energy-preset-7', 'energy-preset-14', 'energy-preset-30']);
+  window.showEnergyChart();
+};
+
+window.applyCustomEnergyRange = function applyCustomEnergyRange() {
+  const fromDate = document.getElementById('energy-from-date')?.value;
+  const toDate = document.getElementById('energy-to-date')?.value;
+  if (!fromDate || !toDate) {
+    alert('Vui lòng chọn đầy đủ từ ngày và đến ngày.');
+    return;
+  }
+
+  if (fromDate > toDate) {
+    alert('Từ ngày không được lớn hơn đến ngày.');
+    return;
+  }
+
+  window.App.dailyEnergyPresetDays = null;
+  setEnergyButtonActive('', ['energy-preset-7', 'energy-preset-14', 'energy-preset-30']);
+  window.showEnergyChart();
+};
+
+window.setEnergyBreakdownType = function setEnergyBreakdownType(type) {
+  window.App.dailyEnergyBreakdownType = type === 'device' ? 'device' : 'room';
+  setEnergyButtonActive(
+    window.App.dailyEnergyBreakdownType === 'device' ? 'energy-breakdown-device' : 'energy-breakdown-room',
+    ['energy-breakdown-room', 'energy-breakdown-device']
+  );
+  window.loadDailyEnergyAnalytics();
+};
+
+window.seedDailyEnergyData = async function seedDailyEnergyData() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    window.doLogout();
+    return;
+  }
+
+  const btn = document.getElementById('energy-seed-demo');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Đang tạo...';
+  }
+
+  try {
+    const response = await fetch(`${window.App.API_BASE}/energy/analytics/seed-demo?days=30`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const result = typeof window.parseApiResponse === 'function'
+      ? await window.parseApiResponse(response)
+      : await response.json();
+
+    if (!response.ok) {
+      alert(result?.message || 'Tạo dữ liệu demo thất bại.');
+      return;
+    }
+
+    const inserted = result?.data?.inserted ?? 0;
+    alert(`Đã tạo dữ liệu demo thành công (${inserted} bản ghi mới).`);
+    window.showEnergyChart();
+    if (typeof window.loadGlobalEnergyOverview === 'function') {
+      window.loadGlobalEnergyOverview();
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Lỗi kết nối server khi tạo dữ liệu demo.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = 'Tạo data demo';
+    }
+  }
+};
+
+window.initDailyEnergyAnalytics = function initDailyEnergyAnalytics() {
+  window.App.dailyEnergyBreakdownType = window.App.dailyEnergyBreakdownType || 'room';
+  window.App.dailyEnergyPresetDays = window.App.dailyEnergyPresetDays || 7;
+
+  setEnergyButtonActive('energy-breakdown-room', ['energy-breakdown-room', 'energy-breakdown-device']);
+  window.setEnergyPresetDays(window.App.dailyEnergyPresetDays);
 };
 
 window.openDeviceDetail = function openDeviceDetail(id) {
@@ -272,55 +714,283 @@ window.submitAddDevice = function submitAddDevice() {
 };
 
 window.showEnergyChart = function showEnergyChart() {
-  const modal = document.getElementById('chart-modal');
-  modal.classList.remove('hidden');
+  const loading = document.getElementById('bar-chart-loading');
+  const empty = document.getElementById('bar-chart-empty');
+  const roomList = document.getElementById('room-breakdown-list');
+  const selectedDateLabel = document.getElementById('room-breakdown-selected-date');
 
-  const activeDevices = window.App.devices.filter((d) => d.isOn && d.powerW > 0);
-  if (activeDevices.length === 0) {
-    document.getElementById('chart-legend').innerHTML = '<p class="text-center text-gray-400">Chưa có dữ liệu. Hãy bật thiết bị để xem thống kê!</p>';
+  if (loading) loading.classList.remove('hidden');
+  if (empty) empty.classList.add('hidden');
+  if (roomList) roomList.innerHTML = '';
+  if (selectedDateLabel) selectedDateLabel.innerText = 'Chưa chọn ngày';
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    window.doLogout();
     return;
   }
 
-  if (window.App.myChart) {
-    window.App.myChart.destroy();
+  const fromInput = document.getElementById('energy-from-date');
+  const toInput = document.getElementById('energy-to-date');
+
+  if (fromInput && toInput && (!fromInput.value || !toInput.value)) {
+    const defaultDays = window.App.dailyEnergyPresetDays || 7;
+    const toDateDefault = new Date();
+    const fromDateDefault = new Date();
+    fromDateDefault.setDate(toDateDefault.getDate() - (defaultDays - 1));
+
+    fromInput.value = fromDateDefault.toISOString().split('T')[0];
+    toInput.value = toDateDefault.toISOString().split('T')[0];
+    setEnergyButtonActive(`energy-preset-${defaultDays}`, ['energy-preset-7', 'energy-preset-14', 'energy-preset-30']);
   }
 
-  const ctx = document.getElementById('energyPieChart').getContext('2d');
-  window.App.myChart = new Chart(ctx, {
-    type: 'doughnut',
+  const fromDate = fromInput?.value;
+  const toDate = toInput?.value;
+  if (!fromDate || !toDate) {
+    alert('Vui lòng chọn khoảng ngày hợp lệ.');
+    if (loading) loading.classList.add('hidden');
+    return;
+  }
+
+  fetch(`${window.App.API_BASE}/energy/analytics/daily?fromDate=${fromDate}&toDate=${toDate}&groupBy=room`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(async (response) => {
+      const result = typeof window.parseApiResponse === 'function'
+        ? await window.parseApiResponse(response)
+        : await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.message || 'Không tải được biểu đồ điện.');
+      }
+
+      return result?.data || {};
+    })
+    .then((data) => {
+      const series = Array.isArray(data.dailySeries) ? data.dailySeries : [];
+      const hasData = series.some((item) => Number(item.kwh || 0) > 0);
+
+      if (!hasData) {
+        if (empty) empty.classList.remove('hidden');
+        if (window.App.energyBarChart) {
+          window.App.energyBarChart.destroy();
+          window.App.energyBarChart = null;
+        }
+        return;
+      }
+
+      renderSevenDayEnergyBarChart(series);
+    })
+    .catch((error) => {
+      console.error(error);
+      alert(error.message || 'Lỗi khi tải biểu đồ điện.');
+    })
+    .finally(() => {
+      if (loading) loading.classList.add('hidden');
+    });
+};
+
+function renderSevenDayEnergyBarChart(series) {
+  const chartCanvas = document.getElementById('energyBarChart');
+  if (!chartCanvas) return;
+
+  const labels = series.map((item) => {
+    const date = new Date(item.date);
+    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+  });
+  const values = series.map((item) => Number(item.kwh || 0));
+
+  if (window.App.energyBarChart) {
+    window.App.energyBarChart.destroy();
+  }
+
+  window.App.energyBarSeries = series;
+  const ctx = chartCanvas.getContext('2d');
+
+  window.App.energyBarChart = new Chart(ctx, {
+    type: 'bar',
     data: {
-      labels: activeDevices.map((d) => d.name),
+      labels,
       datasets: [{
-        data: activeDevices.map((d) => (d.powerW * d.hours / 1000).toFixed(2)),
-        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
-        borderWidth: 0,
-        hoverOffset: 10
+        label: 'kWh',
+        data: values,
+        backgroundColor: '#3b82f6',
+        borderRadius: 8
       }]
     },
     options: {
-      plugins: { legend: { display: false } },
-      cutout: '70%'
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${Number(context.raw || 0).toFixed(2)} kWh`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'kWh' }
+        }
+      },
+      onClick: (_, elements) => {
+        if (!elements.length) return;
+        const index = elements[0].index;
+        const point = window.App.energyBarSeries?.[index];
+        if (!point?.date) return;
+        loadRoomBreakdownByDate(point.date);
+      }
     }
   });
+}
 
-  let legendHtml = '';
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-  activeDevices.forEach((d, index) => {
-    const kwh = (d.powerW * d.hours / 1000).toFixed(2);
-    legendHtml += `
-      <div class="flex justify-between items-center text-sm">
-        <div class="flex items-center">
-          <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${colors[index % colors.length]}"></span>
-          <span class="text-gray-600">${d.name}</span>
+function loadRoomBreakdownByDate(usageDate) {
+  const token = localStorage.getItem('token');
+  const loading = document.getElementById('room-breakdown-loading');
+  const list = document.getElementById('room-breakdown-list');
+  const selectedDateLabel = document.getElementById('room-breakdown-selected-date');
+
+  if (!token) return;
+
+  if (loading) loading.classList.remove('hidden');
+  if (list) list.innerHTML = '';
+
+  const date = new Date(usageDate);
+  if (selectedDateLabel) {
+    selectedDateLabel.innerText = `Ngày ${date.toLocaleDateString('vi-VN')}`;
+  }
+
+  fetch(`${window.App.API_BASE}/energy/analytics/day/rooms?usageDate=${usageDate}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(async (response) => {
+      const result = typeof window.parseApiResponse === 'function'
+        ? await window.parseApiResponse(response)
+        : await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.message || 'Không tải được thống kê phòng.');
+      }
+
+      return result?.data || [];
+    })
+    .then((rooms) => {
+      renderRoomBreakdownList(rooms, usageDate);
+    })
+    .catch((error) => {
+      console.error(error);
+      if (list) {
+        list.innerHTML = '<div class="p-3 rounded-lg bg-red-50 text-red-600 text-sm">Không tải được thống kê phòng.</div>';
+      }
+    })
+    .finally(() => {
+      if (loading) loading.classList.add('hidden');
+    });
+}
+
+function renderRoomBreakdownList(rooms, usageDate) {
+  const list = document.getElementById('room-breakdown-list');
+  if (!list) return;
+
+  if (!Array.isArray(rooms) || rooms.length === 0) {
+    list.innerHTML = '<div class="p-3 rounded-lg bg-gray-50 text-gray-500 text-sm">Không có dữ liệu theo phòng trong ngày này.</div>';
+    return;
+  }
+
+  list.innerHTML = rooms.map((room, index) => `
+    <button
+      onclick="openRoomDeviceModal(${room.roomId}, '${usageDate}', '${toVietnameseDisplayName(room.roomName || '').replace(/'/g, "\\'")}')"
+      class="w-full text-left p-3 rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all"
+    >
+      <div class="flex justify-between items-center">
+        <div>
+          <div class="text-sm font-semibold text-gray-800">#${index + 1} ${toVietnameseDisplayName(room.roomName || 'Không rõ phòng')}</div>
+          <div class="text-xs text-gray-500">${Number(room.kwh || 0).toFixed(2)} kWh</div>
         </div>
-        <span class="font-bold text-gray-800">${kwh} kWh</span>
-      </div>`;
-  });
-  document.getElementById('chart-legend').innerHTML = legendHtml;
+        <div class="text-sm font-bold text-blue-700">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.estimatedCost || 0)}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+window.openRoomDeviceModal = function openRoomDeviceModal(roomId, usageDate, roomName) {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  const modal = document.getElementById('room-device-modal');
+  const title = document.getElementById('room-device-title');
+  const subtitle = document.getElementById('room-device-subtitle');
+  const loading = document.getElementById('room-device-loading');
+  const list = document.getElementById('room-device-list');
+
+  if (title) title.innerText = `Thiết bị trong ${toVietnameseDisplayName(roomName)}`;
+  if (subtitle) {
+    const date = new Date(usageDate);
+    subtitle.innerText = `Ngày ${date.toLocaleDateString('vi-VN')} • Sắp xếp giảm dần theo điện năng`;
+  }
+  if (list) list.innerHTML = '';
+  if (loading) loading.classList.remove('hidden');
+  if (modal) modal.classList.remove('hidden');
+
+  fetch(`${window.App.API_BASE}/energy/analytics/day/rooms/${roomId}/devices?usageDate=${usageDate}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(async (response) => {
+      const result = typeof window.parseApiResponse === 'function'
+        ? await window.parseApiResponse(response)
+        : await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.message || 'Không tải được danh sách thiết bị.');
+      }
+
+      return result?.data || [];
+    })
+    .then((devices) => {
+      if (!list) return;
+
+      if (!Array.isArray(devices) || devices.length === 0) {
+        list.innerHTML = '<div class="p-3 rounded-lg bg-gray-50 text-gray-500 text-sm">Không có dữ liệu thiết bị trong phòng này.</div>';
+        return;
+      }
+
+      list.innerHTML = devices.map((device, index) => `
+        <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-sm font-semibold text-gray-800">#${index + 1} ${toVietnameseDisplayName(device.deviceName || 'Thiết bị không tên')}</div>
+              <div class="text-xs text-gray-500">Công suất: ${Number(device.powerRating || 0).toFixed(0)} W • ${Number(device.kwh || 0).toFixed(2)} kWh</div>
+            </div>
+            <div class="text-sm font-bold text-blue-700">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(device.estimatedCost || 0)}</div>
+          </div>
+        </div>
+      `).join('');
+    })
+    .catch((error) => {
+      console.error(error);
+      if (list) {
+        list.innerHTML = '<div class="p-3 rounded-lg bg-red-50 text-red-600 text-sm">Không tải được dữ liệu thiết bị.</div>';
+      }
+    })
+    .finally(() => {
+      if (loading) loading.classList.add('hidden');
+    });
 };
 
-window.closeChartModal = function closeChartModal() {
-  document.getElementById('chart-modal').classList.add('hidden');
+window.closeRoomDeviceModal = function closeRoomDeviceModal() {
+  const modal = document.getElementById('room-device-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
 };
 
 window.showRoomStats = function showRoomStats() {

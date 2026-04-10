@@ -63,7 +63,8 @@ onUnmounted(() => {
         </router-link>
         <a
           href="#"
-          onclick="showEnergyChart()"
+          onclick="switchDashboardTab('energy-page')"
+          id="tab-energy-page"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="activity" class="mr-3 w-5 h-5"></i> Thống kê điện
@@ -78,13 +79,13 @@ onUnmounted(() => {
           <i data-lucide="user" class="mr-3 w-5 h-5"></i> Hồ sơ cá nhân
         </a>
 
-        <a
-          href="blog.html"
+        <RouterLink
+          to="/blog"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
           id="nav-blog"
         >
           <i data-lucide="book-open" class="mr-3 w-5 h-5"></i> Blog
-        </a>
+        </RouterLink>
       </nav>
       <div class="p-4 border-t border-gray-100">
         <a
@@ -260,6 +261,38 @@ onUnmounted(() => {
 
           <section>
             <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-bold text-gray-800">Thống kê tháng này</h2>
+              <span class="text-xs text-gray-500">Bản tóm tắt nhanh trên trang Home</span>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-8">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                  <div class="text-xs text-blue-600 font-medium mb-1">Tổng kWh</div>
+                  <div id="global-total-kwh" class="text-2xl font-bold text-slate-800">0.00</div>
+                </div>
+                <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                  <div class="text-xs text-emerald-600 font-medium mb-1">Tổng tiền ước tính</div>
+                  <div id="global-total-cost" class="text-2xl font-bold text-slate-800">0 ₫</div>
+                </div>
+                <div class="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                  <div class="text-xs text-amber-700 font-medium mb-1">So với tháng trước</div>
+                  <div id="global-delta" class="text-lg font-bold text-slate-800">0.00 kWh (0%)</div>
+                </div>
+              </div>
+
+              <div id="global-energy-loading" class="hidden p-3 rounded-lg bg-gray-50 text-gray-500 text-sm mb-3">
+                Đang tải thống kê toàn cục...
+              </div>
+              <div id="global-energy-empty" class="hidden p-6 rounded-lg bg-gray-50 text-gray-500 text-center text-sm mb-3">
+                Chưa có dữ liệu điện năng để hiển thị thống kê toàn cục.
+              </div>
+              <div style="height: 250px">
+                <canvas id="global-energy-chart"></canvas>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-bold text-gray-800">
                 Thiết bị trong nhà
               </h2>
@@ -279,6 +312,97 @@ onUnmounted(() => {
               id="devices-container"
             ></div>
           </section>
+        </div>
+
+        <div id="energy-page-content" class="hidden max-w-6xl mx-auto space-y-6">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <h2 class="text-2xl font-bold text-gray-800">Thống kê điện chi tiết</h2>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button
+                id="energy-preset-7"
+                onclick="setEnergyPresetDays(7)"
+                class="px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700"
+              >
+                7 ngày
+              </button>
+              <button
+                id="energy-preset-14"
+                onclick="setEnergyPresetDays(14)"
+                class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600"
+              >
+                14 ngày
+              </button>
+              <button
+                id="energy-preset-30"
+                onclick="setEnergyPresetDays(30)"
+                class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600"
+              >
+                30 ngày
+              </button>
+              <button
+                id="energy-seed-demo"
+                onclick="seedDailyEnergyData()"
+                class="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-50 text-emerald-700"
+              >
+                Tạo data demo
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Từ ngày</label>
+                <input
+                  id="energy-from-date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Đến ngày</label>
+                <input
+                  id="energy-to-date"
+                  type="date"
+                  class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <button
+                  onclick="applyCustomEnergyRange()"
+                  class="w-full px-4 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-medium hover:bg-slate-900"
+                >
+                  Áp dụng khoảng ngày
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+              <div class="mb-3 text-sm text-gray-500" id="daily-bar-hint">
+                Biểu đồ cột hiển thị 7 ngày gần nhất. Di chuột để xem số liệu và nhấn vào cột để xem theo phòng.
+              </div>
+              <div id="bar-chart-loading" class="hidden p-3 rounded-lg bg-gray-50 text-gray-500 text-sm mb-3">
+                Đang tải dữ liệu biểu đồ...
+              </div>
+              <div id="bar-chart-empty" class="hidden p-6 rounded-lg bg-gray-50 text-gray-500 text-center text-sm mb-3">
+                Chưa có dữ liệu điện năng trong 7 ngày gần nhất.
+              </div>
+              <div style="height: 340px">
+                <canvas id="energyBarChart"></canvas>
+              </div>
+            </div>
+
+            <div class="lg:col-span-1">
+              <h4 class="font-semibold text-gray-800 mb-2">Thống kê theo phòng (giảm dần)</h4>
+              <p id="room-breakdown-selected-date" class="text-xs text-gray-500 mb-3">Chưa chọn ngày</p>
+              <div id="room-breakdown-loading" class="hidden p-3 rounded-lg bg-gray-50 text-gray-500 text-sm mb-3">
+                Đang tải danh sách phòng...
+              </div>
+              <div id="room-breakdown-list" class="space-y-2 max-h-[320px] overflow-auto"></div>
+            </div>
+          </div>
         </div>
 
         <div
@@ -477,39 +601,24 @@ onUnmounted(() => {
       </div>
 
       <div
-        id="chart-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+        id="room-device-modal"
+        class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
       >
-        <div
-          class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden"
-        >
-          <div
-            class="p-6 border-b border-gray-100 flex justify-between items-center"
-          >
-            <h3 class="font-bold text-xl text-gray-800 flex items-center">
-              <i data-lucide="pie-chart" class="w-5 h-5 mr-2 text-blue-500"></i>
-              Thống kê tiêu thụ hôm nay
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+            <h3 id="room-device-title" class="font-bold text-lg text-gray-800">
+              Thiết bị trong phòng
             </h3>
-            <button
-              onclick="closeChartModal()"
-              class="text-gray-400 hover:text-gray-800"
-            >
+            <button onclick="closeRoomDeviceModal()" class="text-gray-400 hover:text-gray-800">
               <i data-lucide="x" class="w-6 h-6"></i>
             </button>
           </div>
-          <div class="p-8 flex flex-col items-center">
-            <div class="w-full max-w-[300px]">
-              <canvas id="energyPieChart"></canvas>
+          <div class="p-5">
+            <p id="room-device-subtitle" class="text-xs text-gray-500 mb-3"></p>
+            <div id="room-device-loading" class="hidden p-3 rounded-lg bg-gray-50 text-gray-500 text-sm mb-3">
+              Đang tải danh sách thiết bị...
             </div>
-            <div id="chart-legend" class="mt-6 w-full space-y-2"></div>
-          </div>
-          <div class="p-4 bg-gray-50 text-center">
-            <button
-              onclick="closeChartModal()"
-              class="text-blue-600 font-bold hover:underline"
-            >
-              Đóng thống kê
-            </button>
+            <div id="room-device-list" class="space-y-2 max-h-[320px] overflow-auto"></div>
           </div>
         </div>
       </div>

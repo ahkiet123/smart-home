@@ -10,6 +10,51 @@ function resolveApiBase() {
     : '/api/v1';
 }
 
+window.ProfileState = {
+  currentProfile: null
+};
+
+function getProfileInitials(fullName) {
+  const name = (fullName || '').trim();
+  if (!name) return 'AD';
+
+  const parts = name.split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  return name.slice(0, 2).toUpperCase();
+}
+
+function applyProfileToUi(profile) {
+  const fullName = (profile?.fullName || '').trim() || 'Admin User';
+  const email = profile?.email || localStorage.getItem('userEmail') || '';
+  const phone = profile?.phone || '';
+  const initials = getProfileInitials(fullName);
+
+  const fullNameInput = document.getElementById('full-profile-name');
+  const phoneInput = document.getElementById('full-profile-phone');
+  const emailInput = document.getElementById('full-profile-email');
+  const pageDisplayName = document.getElementById('page-display-name');
+  const modalDisplayName = document.getElementById('modal-display-name');
+  const pageDisplayEmail = document.getElementById('page-display-email');
+  const modalDisplayEmail = document.getElementById('modal-display-email');
+  const pageAvatar = document.getElementById('page-avatar');
+  const modalAvatar = document.getElementById('modal-avatar');
+  const headerAvatar = document.getElementById('header-avatar');
+
+  if (fullNameInput) fullNameInput.value = fullName;
+  if (phoneInput) phoneInput.value = phone;
+  if (emailInput) emailInput.value = email;
+  if (pageDisplayName) pageDisplayName.innerText = fullName;
+  if (modalDisplayName) modalDisplayName.innerText = fullName;
+  if (pageDisplayEmail) pageDisplayEmail.innerText = email;
+  if (modalDisplayEmail) modalDisplayEmail.innerText = email;
+  if (pageAvatar) pageAvatar.innerText = initials;
+  if (modalAvatar) modalAvatar.innerText = initials;
+  if (headerAvatar) headerAvatar.innerText = initials;
+}
+
 function setLoadingSafe(button, isLoading, loadingText, defaultText) {
   if (typeof window.setButtonLoading === 'function') {
     window.setButtonLoading(button, isLoading, loadingText, defaultText);
@@ -38,10 +83,12 @@ async function parseApiResponseSafe(response) {
 
 window.switchDashboardTab = function switchDashboardTab(tabId) {
   const overviewContent = document.getElementById('overview-content');
+  const energyContent = document.getElementById('energy-page-content');
   const profileContent = document.getElementById('profile-page-content');
-  if (!overviewContent || !profileContent) return;
+  if (!overviewContent || !profileContent || !energyContent) return;
 
   overviewContent.classList.add('hidden');
+  energyContent.classList.add('hidden');
   profileContent.classList.add('hidden');
 
   const selectedContent = document.getElementById(tabId + '-content');
@@ -51,7 +98,7 @@ window.switchDashboardTab = function switchDashboardTab(tabId) {
 
   const fabAddButton = document.getElementById('fab-add-device');
   if (fabAddButton) {
-    if (tabId === 'profile-page') {
+    if (tabId === 'profile-page' || tabId === 'energy-page') {
       fabAddButton.classList.add('hidden');
     } else {
       fabAddButton.classList.remove('hidden');
@@ -59,10 +106,14 @@ window.switchDashboardTab = function switchDashboardTab(tabId) {
   }
 
   const overviewTab = document.getElementById('tab-overview');
+  const energyTab = document.getElementById('tab-energy-page');
   const profileTab = document.getElementById('tab-profile-page');
 
   if (overviewTab) {
     overviewTab.className = 'flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer';
+  }
+  if (energyTab) {
+    energyTab.className = 'flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer';
   }
   if (profileTab) {
     profileTab.className = 'flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer';
@@ -70,8 +121,17 @@ window.switchDashboardTab = function switchDashboardTab(tabId) {
 
   if (tabId === 'overview' && overviewTab) {
     overviewTab.className = 'flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer';
+    if (typeof window.loadGlobalEnergyOverview === 'function') {
+      window.loadGlobalEnergyOverview();
+    }
+  } else if (tabId === 'energy-page' && energyTab) {
+    energyTab.className = 'flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer';
   } else if (tabId === 'profile-page' && profileTab) {
     profileTab.className = 'flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer';
+  }
+
+  if (tabId === 'energy-page' && typeof window.showEnergyChart === 'function') {
+    window.showEnergyChart();
   }
 };
 
@@ -97,6 +157,53 @@ window.closeQuickProfileModal = function closeQuickProfileModal() {
 window.goToProfilePage = function goToProfilePage() {
   window.closeQuickProfileModal();
   window.switchDashboardTab('profile-page');
+};
+
+window.loadUserProfile = async function loadUserProfile() {
+  const token = localStorage.getItem('token');
+  const apiBase = resolveApiBase();
+
+  if (!token) {
+    applyProfileToUi({
+      fullName: 'Admin User',
+      email: localStorage.getItem('userEmail') || '',
+      phone: ''
+    });
+    return;
+  }
+
+  try {
+    const response = await fetch(`${apiBase}/users/profile`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const result = await parseApiResponseSafe(response);
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        window.doLogout();
+        return;
+      }
+      throw new Error(result?.message || 'Không thể tải thông tin hồ sơ');
+    }
+
+    const profile = result?.data || {};
+    window.ProfileState.currentProfile = profile;
+
+    if (profile.email) {
+      localStorage.setItem('userEmail', profile.email);
+    }
+
+    applyProfileToUi(profile);
+  } catch (error) {
+    console.error(error);
+    const fallbackEmail = localStorage.getItem('userEmail') || '';
+    applyProfileToUi({ fullName: 'Admin User', email: fallbackEmail, phone: '' });
+    alert('Không tải được hồ sơ người dùng từ server.');
+  }
 };
 
 window.submitChangePassword = async function submitChangePassword() {
@@ -153,30 +260,82 @@ window.submitChangePassword = async function submitChangePassword() {
   }
 };
 
-window.submitUpdateFullProfile = function submitUpdateFullProfile() {
-  const name = document.getElementById('full-profile-name')?.value || 'Admin User';
+window.submitUpdateFullProfile = async function submitUpdateFullProfile() {
+  const fullName = (document.getElementById('full-profile-name')?.value || '').trim();
+  const phone = (document.getElementById('full-profile-phone')?.value || '').trim();
+  const submitBtn = document.querySelector('#profile-page-content form button[type="submit"]');
+  const token = localStorage.getItem('token');
+  const apiBase = resolveApiBase();
 
-  const pageDisplayName = document.getElementById('page-display-name');
-  const modalDisplayName = document.getElementById('modal-display-name');
-  if (pageDisplayName) pageDisplayName.innerText = name;
-  if (modalDisplayName) modalDisplayName.innerText = name;
-
-  let initials = 'AD';
-  if (name.trim()) {
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    } else {
-      initials = name.substring(0, 2).toUpperCase();
-    }
+  if (!token) {
+    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    window.doLogout();
+    return;
   }
 
-  const pageAvatar = document.getElementById('page-avatar');
-  const modalAvatar = document.getElementById('modal-avatar');
-  const headerAvatar = document.getElementById('header-avatar');
-  if (pageAvatar) pageAvatar.innerText = initials;
-  if (modalAvatar) modalAvatar.innerText = initials;
-  if (headerAvatar) headerAvatar.innerText = initials;
+  if (!fullName) {
+    alert('Họ và tên không được để trống.');
+    return;
+  }
 
-  alert('Thông tin hồ sơ cá nhân đã được lưu!');
+  const vnPhoneRegex = /^(0|\+84)(3|5|7|8|9)\d{8}$/;
+  if (phone && !vnPhoneRegex.test(phone)) {
+    alert('Số điện thoại không hợp lệ (định dạng VN).');
+    return;
+  }
+
+  const cached = window.ProfileState.currentProfile || {};
+  const cachedFullName = (cached.fullName || '').trim();
+  const cachedPhone = (cached.phone || '').trim();
+
+  if (cachedFullName === fullName && cachedPhone === phone) {
+    alert('Thông tin chưa thay đổi.');
+    return;
+  }
+
+  const payload = {
+    fullName,
+    phone,
+    address: cached.address || '',
+    city: cached.city || '',
+    country: cached.country || ''
+  };
+
+  setLoadingSafe(submitBtn, true, 'Đang lưu thay đổi...', 'Lưu thay đổi');
+
+  try {
+    const response = await fetch(`${apiBase}/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await parseApiResponseSafe(response);
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        window.doLogout();
+        return;
+      }
+      alert(result?.message || 'Cập nhật hồ sơ thất bại');
+      return;
+    }
+
+    window.ProfileState.currentProfile = {
+      ...cached,
+      ...payload,
+      email: cached.email || localStorage.getItem('userEmail') || ''
+    };
+    applyProfileToUi(window.ProfileState.currentProfile);
+
+    alert('Đã cập nhật hồ sơ thành công.');
+  } catch (error) {
+    console.error(error);
+    alert('Lỗi kết nối server khi cập nhật hồ sơ.');
+  } finally {
+    setLoadingSafe(submitBtn, false, 'Đang lưu thay đổi...', 'Lưu thay đổi');
+  }
 };

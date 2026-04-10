@@ -41,12 +41,12 @@ window.togglePassword = function togglePassword(inputId, icon) {
 
 window.onclick = function (event) {
   const modalOverlays = [
-    'chart-modal',
     'room-stats-modal',
     'stats-detail-modal',
     'device-detail-modal',
     'add-modal',
-    'quick-profile-modal'
+    'quick-profile-modal',
+    'room-device-modal'
   ];
 
   modalOverlays.forEach((id) => {

@@ -50,6 +50,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/tips/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/blogs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/blogs/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/rooms/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/device-types/**").permitAll()
                 .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             );
