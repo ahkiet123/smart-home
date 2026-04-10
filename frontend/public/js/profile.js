@@ -83,10 +83,12 @@ async function parseApiResponseSafe(response) {
 
 window.switchDashboardTab = function switchDashboardTab(tabId) {
   const overviewContent = document.getElementById('overview-content');
+  const energyContent = document.getElementById('energy-page-content');
   const profileContent = document.getElementById('profile-page-content');
-  if (!overviewContent || !profileContent) return;
+  if (!overviewContent || !profileContent || !energyContent) return;
 
   overviewContent.classList.add('hidden');
+  energyContent.classList.add('hidden');
   profileContent.classList.add('hidden');
 
   const selectedContent = document.getElementById(tabId + '-content');
@@ -96,7 +98,7 @@ window.switchDashboardTab = function switchDashboardTab(tabId) {
 
   const fabAddButton = document.getElementById('fab-add-device');
   if (fabAddButton) {
-    if (tabId === 'profile-page') {
+    if (tabId === 'profile-page' || tabId === 'energy-page') {
       fabAddButton.classList.add('hidden');
     } else {
       fabAddButton.classList.remove('hidden');
@@ -104,10 +106,14 @@ window.switchDashboardTab = function switchDashboardTab(tabId) {
   }
 
   const overviewTab = document.getElementById('tab-overview');
+  const energyTab = document.getElementById('tab-energy-page');
   const profileTab = document.getElementById('tab-profile-page');
 
   if (overviewTab) {
     overviewTab.className = 'flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer';
+  }
+  if (energyTab) {
+    energyTab.className = 'flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer';
   }
   if (profileTab) {
     profileTab.className = 'flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer';
@@ -115,8 +121,17 @@ window.switchDashboardTab = function switchDashboardTab(tabId) {
 
   if (tabId === 'overview' && overviewTab) {
     overviewTab.className = 'flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer';
+    if (typeof window.loadGlobalEnergyOverview === 'function') {
+      window.loadGlobalEnergyOverview();
+    }
+  } else if (tabId === 'energy-page' && energyTab) {
+    energyTab.className = 'flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer';
   } else if (tabId === 'profile-page' && profileTab) {
     profileTab.className = 'flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors cursor-pointer';
+  }
+
+  if (tabId === 'energy-page' && typeof window.showEnergyChart === 'function') {
+    window.showEnergyChart();
   }
 };
 
