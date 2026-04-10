@@ -54,6 +54,13 @@ onUnmounted(() => {
         >
           <i data-lucide="home" class="mr-3 w-5 h-5"></i> Phòng ốc
         </a>
+        <router-link
+            to="/calculator"
+            class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors cursor-pointer"
+            active-class="text-blue-700 bg-blue-50"
+        >
+          <i data-lucide="calculator" class="mr-3 w-5 h-5"></i> Tính toán nhanh
+        </router-link>
         <a
           href="#"
           onclick="showEnergyChart()"
