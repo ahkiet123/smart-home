@@ -60,7 +60,7 @@ const doLogin = async () => {
     localStorage.setItem("userEmail", email.value);
 
     // ✅ chuyển trang
-    window.location.href = "/";
+    router.push("/home");
   } catch (error) {
     console.error(error);
     alert("Không thể kết nối tới server");
