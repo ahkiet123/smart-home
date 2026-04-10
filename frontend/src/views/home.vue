@@ -72,13 +72,13 @@ onUnmounted(() => {
           <i data-lucide="user" class="mr-3 w-5 h-5"></i> Hồ sơ cá nhân
         </a>
 
-        <a
-          href="blog.html"
+        <RouterLink
+          to="/blog"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
           id="nav-blog"
         >
           <i data-lucide="book-open" class="mr-3 w-5 h-5"></i> Blog
-        </a>
+        </RouterLink>
       </nav>
       <div class="p-4 border-t border-gray-100">
         <a
