@@ -45,9 +45,11 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/auth/login", "/auth/register", "/auth/register/verify", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tips/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/blogs/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/blogs/**").permitAll()
                 .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             );
