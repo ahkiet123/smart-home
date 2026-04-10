@@ -257,13 +257,6 @@ onMounted(async () => {
             Theo dõi điện năng theo từng khu vực
           </p>
         </div>
-        <button
-          @click="openAddModal"
-          class="hidden sm:inline-flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md"
-        >
-          <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-          Thêm phòng
-        </button>
       </header>
 
       <div class="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 pb-24 space-y-6">
@@ -354,13 +347,6 @@ onMounted(async () => {
         </section>
 
         <section>
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-800">Danh sách phòng</h2>
-            <span class="text-sm text-gray-500"
-              >Bấm vào card để xem chi tiết phòng</span
-            >
-          </div>
-
           <div
             v-if="loading"
             class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
@@ -426,17 +412,6 @@ onMounted(async () => {
                 class="flex items-center justify-between text-sm text-gray-500"
               >
                 <span>{{ formatArea(room.area) }}</span>
-                <span
-                  class="font-semibold"
-                  :class="
-                    Number(room.trendPercent) >= 0
-                      ? 'text-emerald-600'
-                      : 'text-rose-600'
-                  "
-                >
-                  {{ Number(room.trendPercent) >= 0 ? "+" : ""
-                  }}{{ formatNumber(room.trendPercent, 1) }}%
-                </span>
               </div>
             </button>
           </div>
