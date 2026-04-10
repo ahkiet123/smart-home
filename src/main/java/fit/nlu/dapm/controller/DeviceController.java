@@ -1,30 +1,42 @@
 package fit.nlu.dapm.controller;
 
 import fit.nlu.dapm.dto.device.CreateDeviceRequest;
+import fit.nlu.dapm.dto.device.DeviceUsageRequest;
 import fit.nlu.dapm.dto.device.UpdateDeviceRequest;
 import fit.nlu.dapm.service.DeviceService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Map; // PHẢI CÓ DÒNG NÀY
+import java.util.Map;
 
 @RestController
-@RequestMapping("/energy") // nhớ đổi đươnờng dẫn
+@RequestMapping("/energy")
 @CrossOrigin(origins = "*")
 public class DeviceController {
 
     @Autowired
     private DeviceService deviceService;
 
-    /**
-     * 1. GHI NHẬT KÝ MỚI
-     * Frontend gửi: { "deviceName": "Quạt", "power": 55, "hours": 2, "date": "2026-04-03" }
-     */
     @PostMapping("/logs")
     public ResponseEntity<?> addUsageLog(@RequestBody Map<String, Object> payload) {
         return ResponseEntity.ok(deviceService.saveUsageLog(payload));
+    }
+
+    @PostMapping("/{id}/usage-logs")
+    // Ghi nhận thời gian sử dụng cho một thiết bị cụ thể.
+    public ResponseEntity<?> addUsageLogByDevice(
+            @PathVariable Long id,
+            @Valid @RequestBody DeviceUsageRequest request) {
+        return ResponseEntity.ok(deviceService.createUsageLog(id, request));
+    }
+
+    @GetMapping("/{id}/usage-logs")
+    // Lấy lịch sử ghi nhận sử dụng của thiết bị.
+    public ResponseEntity<?> getUsageLogsByDevice(@PathVariable Long id) {
+        return ResponseEntity.ok(deviceService.getUsageLogs(id));
     }
 
     /**
@@ -80,6 +92,7 @@ public class DeviceController {
     }
 
     @GetMapping("/{id}")
+    // Lấy chi tiết thiết bị và dữ liệu tiêu thụ đã tổng hợp.
     public ResponseEntity<?> getDeviceDetail(@PathVariable Long id) {
         return ResponseEntity.ok(deviceService.getDeviceDetail(id));
     }

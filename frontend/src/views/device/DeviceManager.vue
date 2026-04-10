@@ -26,11 +26,7 @@
         :key="device.id"
         @click="openDeviceDetail(device.id)"
         class="relative p-5 rounded-2xl border transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-        :class="
-          device.isOn
-            ? 'bg-white border-blue-100 shadow-md shadow-blue-50/50'
-            : 'bg-gray-50 border-gray-100 shadow-sm'
-        "
+        :class="'bg-white border-blue-100 shadow-md shadow-blue-50/50'"
       >
         <!-- EDIT BUTTON -->
         <button
@@ -49,55 +45,29 @@
           <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
         </button>
 
-        <!-- ICON + TOGGLE -->
+        <!-- ICON + ACTION -->
         <div class="flex justify-between items-start mb-4">
-          <div
-            class="p-3 rounded-full"
-            :class="
-              device.isOn
-                ? 'bg-blue-50 text-blue-500'
-                : 'bg-white text-gray-400 border border-gray-100'
-            "
-          >
+          <div class="p-3 rounded-full" :class="'bg-blue-50 text-blue-500'">
             <i :data-lucide="getIcon(device.type)" class="w-6 h-6"></i>
           </div>
 
-          <label class="flex items-center cursor-pointer" @click.stop>
-            <div class="relative">
-              <input
-                type="checkbox"
-                class="sr-only toggle-checkbox"
-                :checked="device.isOn"
-                @change="toggleDevice(device)"
-              />
-              <div
-                class="toggle-label block w-12 h-7 rounded-full transition-colors duration-300"
-                :class="device.isOn ? 'bg-blue-500' : 'bg-gray-300'"
-              >
-                <div
-                  class="toggle-circle absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300"
-                  :class="device.isOn ? 'translate-x-5' : 'translate-x-0'"
-                ></div>
-              </div>
-            </div>
-          </label>
+          <button
+            @click.stop="openUsageModal(device)"
+            class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+          >
+            Ghi nhận
+          </button>
         </div>
 
         <!-- NAME + ROOM + POWER -->
         <div>
-          <h3
-            class="font-semibold text-base mb-1"
-            :class="device.isOn ? 'text-gray-800' : 'text-gray-500'"
-          >
+          <h3 class="font-semibold text-base mb-1" :class="'text-gray-800'">
             {{ device.deviceName }}
           </h3>
           <div class="flex justify-between items-center text-sm">
             <span class="text-gray-400">{{ device.roomName }}</span>
-            <span
-              class="font-medium"
-              :class="device.isOn ? 'text-amber-500' : 'text-gray-400'"
-            >
-              {{ device.isOn ? device.powerRating + "W" : "Tắt" }}
+            <span class="font-medium text-amber-500">
+              {{ device.powerRating }}W
             </span>
           </div>
         </div>
@@ -116,57 +86,202 @@
     <Teleport to="body">
       <div
         v-if="showDetailModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 backdrop-blur-sm px-4"
         @click.self="closeDeviceDetail"
       >
-        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
-          <h3 class="text-lg font-bold mb-4">Thông tin thiết bị</h3>
-          <div class="space-y-2 text-gray-700">
-            <p><strong>Tên:</strong> {{ selectedDevice?.deviceName }}</p>
-            <p><strong>Phòng:</strong> {{ selectedDevice?.roomName }}</p>
-            <p>
-              <strong>Công suất:</strong> {{ selectedDevice?.powerRating }} W
-            </p>
-            <p>
-              <strong>Giờ sử dụng: </strong>
-              {{ selectedDevice?.hours ? selectedDevice.hours.toFixed(4) : 0 }}
-              giờ
-            </p>
-            <p>
-              <strong>Trạng thái: </strong>
-              <span
-                :class="
-                  selectedDevice?.isOn
-                    ? 'text-green-600 font-medium'
-                    : 'text-gray-400'
-                "
-              >
-                {{ selectedDevice?.isOn ? "Đang bật" : "Đã tắt" }}
-              </span>
-            </p>
-            <p>
-              <strong>Tiêu thụ hôm nay: </strong>
-              <span class="font-medium text-blue-600">
-                {{
-                  selectedDevice?.kwhToday
-                    ? selectedDevice.kwhToday.toFixed(4)
-                    : 0
-                }}
-              </span>
-            </p>
-            <p>
-              <strong>Chi phí ước tính: </strong>
-              <span class="font-medium text-amber-600">
-                {{ formatMoney(selectedDevice?.costToday || 0) }}
-              </span>
-            </p>
-          </div>
-          <button
-            @click="closeDeviceDetail"
-            class="mt-5 w-full py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+        <div
+          class="bg-white w-full max-w-xl rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div
+            class="px-5 py-4 border-b border-gray-100 flex items-center justify-between"
           >
-            Đóng
-          </button>
+            <h3 class="text-lg font-bold text-gray-800">Thông tin thiết bị</h3>
+            <button
+              @click="closeDeviceDetail"
+              class="text-gray-400 hover:text-gray-600 bg-gray-50 p-1.5 rounded-full"
+            >
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-2.5 text-sm">
+              <div
+                class="col-span-2 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2"
+              >
+                <p class="text-gray-400 text-xs">Tên thiết bị</p>
+                <p class="font-semibold text-gray-800">
+                  {{ selectedDevice?.deviceName || "-" }}
+                </p>
+              </div>
+              <div class="rounded-xl border border-gray-100 px-3 py-2">
+                <p class="text-gray-400 text-xs">Phòng</p>
+                <p class="font-medium text-gray-700">
+                  {{ selectedDevice?.roomName || "-" }}
+                </p>
+              </div>
+              <div class="rounded-xl border border-gray-100 px-3 py-2">
+                <p class="text-gray-400 text-xs">Công suất</p>
+                <p class="font-medium text-gray-700">
+                  {{ selectedDevice?.powerRating || 0 }} W
+                </p>
+              </div>
+              <div
+                class="rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2"
+              >
+                <p class="text-blue-500 text-xs">Giờ sử dụng</p>
+                <p class="font-semibold text-blue-700">
+                  {{
+                    selectedDevice?.hours ? selectedDevice.hours.toFixed(4) : 0
+                  }}
+                  giờ
+                </p>
+              </div>
+              <div
+                class="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2"
+              >
+                <p class="text-amber-500 text-xs">Chi phí hôm nay</p>
+                <p class="font-semibold text-amber-700">
+                  {{ formatMoney(selectedDevice?.costToday || 0) }}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <p class="font-semibold text-gray-800 mb-2">Lịch sử ghi nhận</p>
+              <p class="text-xs text-gray-400 mb-2">
+                Tiêu thụ hôm nay:
+                <span class="text-blue-600 font-semibold">
+                  {{
+                    selectedDevice?.kwhToday
+                      ? selectedDevice.kwhToday.toFixed(4)
+                      : 0
+                  }}
+                  kWh
+                </span>
+              </p>
+
+              <div
+                v-if="selectedDevice?.usageLogs?.length"
+                class="max-h-52 overflow-y-auto rounded-xl border border-gray-100"
+              >
+                <table class="w-full text-sm">
+                  <thead
+                    class="bg-gray-50 text-gray-500 text-xs uppercase sticky top-0"
+                  >
+                    <tr>
+                      <th class="text-left px-3 py-2">Ngày</th>
+                      <th class="text-right px-3 py-2">Giờ dùng</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="log in selectedDevice.usageLogs"
+                      :key="log.id"
+                      class="border-t border-gray-100 hover:bg-gray-50/70"
+                    >
+                      <td class="px-3 py-2">{{ formatDate(log.usageDate) }}</td>
+                      <td class="px-3 py-2 text-right font-medium">
+                        {{ log.hoursUsed ?? 0 }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div
+                v-else
+                class="text-sm text-gray-400 rounded-xl border border-dashed border-gray-200 p-3"
+              >
+                Chưa có dữ liệu ghi nhận thời gian sử dụng.
+              </div>
+            </div>
+
+            <button
+              @click="closeDeviceDetail"
+              class="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Modal ghi nhận sử dụng -->
+    <Teleport to="body">
+      <div
+        v-if="showUsageModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
+        @click.self="closeUsageModal"
+      >
+        <div
+          class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div
+            class="px-5 py-3.5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50"
+          >
+            <h3 class="font-bold text-base text-gray-800">Ghi nhận sử dụng</h3>
+            <button
+              @click="closeUsageModal"
+              class="text-gray-400 hover:text-gray-600 bg-white p-1 rounded-full shadow-sm"
+            >
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="submitUsageLog" class="p-5 space-y-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1"
+                >Tên thiết bị</label
+              >
+              <div
+                class="w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-medium"
+              >
+                {{ usageForm.deviceName }}
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1"
+                >Số giờ sử dụng</label
+              >
+              <div class="relative">
+                <input
+                  v-model.number="usageForm.hoursUsed"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  placeholder="Ví dụ: 2.5"
+                  class="w-full px-3 py-2.5 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <span
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400"
+                >
+                  giờ
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">
+                Nhập đúng số giờ theo thực tế sử dụng.
+              </p>
+            </div>
+
+            <div class="pt-1 flex space-x-2.5">
+              <button
+                type="button"
+                @click="closeUsageModal"
+                class="flex-1 px-3 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="flex-1 px-3 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md"
+              >
+                Lưu ghi nhận
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </Teleport>
@@ -306,7 +421,7 @@
       <div
         v-if="showEditModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
-        @click.self="closeAddModal"
+        @click.self="showEditModal = false"
       >
         <div
           class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden"
@@ -318,7 +433,7 @@
               Chỉnh sửa thiết bị mới
             </h3>
             <button
-              @click="closeAddModal"
+              @click="showEditModal = false"
               class="text-gray-400 hover:text-gray-600 bg-white p-1 rounded-full shadow-sm"
             >
               <i data-lucide="x" class="w-5 h-5"></i>
@@ -436,22 +551,28 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { ref, watch, nextTick, onMounted } from "vue";
+import API_BASE from "../../services/api";
 
 const devices = ref([]);
 const selectedDevice = ref(null);
 
 const editingDeviceId = ref(null);
+const usageDeviceId = ref(null);
 
 const rooms = ref([]);
 const deviceTypes = ref([]);
-
-const loadingId = ref(null);
 
 const showDetailModal = ref(false);
 const showAddModal = ref(false);
 const isEditMode = ref(false);
 const showEditModal = ref(false);
+const showUsageModal = ref(false);
+
+const usageForm = ref({
+  deviceName: "",
+  hoursUsed: null,
+});
 
 function formatMoney(n) {
   return new Intl.NumberFormat("vi-VN", {
@@ -470,6 +591,19 @@ function getIcon(type) {
   return map[type] ?? "power";
 }
 
+function formatDate(date) {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("vi-VN");
+}
+
+// Format datetime cho bảng lịch sử trong modal chi tiết.
+function formatDateTime(dateTime) {
+  if (!dateTime) return "-";
+  return new Date(dateTime).toLocaleString("vi-VN", {
+    hour12: false,
+  });
+}
+
 function toggleEditMode() {
   isEditMode.value = !isEditMode.value;
 }
@@ -481,7 +615,13 @@ async function refreshIcons() {
 }
 
 // Re-render lucide icons sau mỗi thay đổi DOM
-watch([devices, isEditMode], refreshIcons, { deep: true });
+watch(
+  [devices, isEditMode, showUsageModal, showAddModal, showEditModal],
+  refreshIcons,
+  {
+    deep: true,
+  },
+);
 
 onMounted(refreshIcons);
 
@@ -489,7 +629,7 @@ onMounted(refreshIcons);
 async function loadDevices() {
   const token = localStorage.getItem("token");
 
-  const res = await fetch("http://localhost:8080/api/v1/energy", {
+  const res = await fetch(`${API_BASE}/energy`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -504,7 +644,6 @@ async function loadDevices() {
     roomId: d.roomId,
     deviceTypeId: d.deviceTypeId,
     powerRating: d.powerRating,
-    isOn: d.isOn,
     brand: d.brand,
     modelNumber: d.modelNumber,
   }));
@@ -514,10 +653,10 @@ onMounted(loadDevices);
 
 // Lấy danh sách phòng và loại thiết bị (hiển thị trong form thêm/sửa)
 onMounted(async () => {
-  const r = await fetch("http://localhost:8080/api/v1/rooms");
+  const r = await fetch(`${API_BASE}/rooms`);
   rooms.value = await r.json();
 
-  const t = await fetch("http://localhost:8080/api/v1/device-types");
+  const t = await fetch(`${API_BASE}/device-types`);
   deviceTypes.value = await t.json();
 
   if (rooms.value.length > 0) {
@@ -534,15 +673,13 @@ async function openDeviceDetail(id) {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`http://localhost:8080/api/v1/energy/${id}`, {
+    const res = await fetch(`${API_BASE}/energy/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
     const data = await res.json();
-    console.log("Device detail:", data);
-
     selectedDevice.value = data;
     showDetailModal.value = true;
   } catch (err) {
@@ -553,7 +690,76 @@ async function openDeviceDetail(id) {
 
 function closeDeviceDetail() {
   showDetailModal.value = false;
-  selectedDeviceId.value = null;
+  selectedDevice.value = null;
+}
+
+// Chuẩn hóa chuỗi datetime-local về định dạng backend LocalDateTime.
+function normalizeDateTime(value) {
+  if (!value) return null;
+  return value.length === 16 ? `${value}:00` : value;
+}
+
+// Mở form ghi nhận sử dụng và gắn thiết bị đang thao tác.
+function openUsageModal(device) {
+  usageDeviceId.value = device.id;
+  usageForm.value = {
+    deviceName: device.deviceName,
+    hoursUsed: null,
+  };
+  showUsageModal.value = true;
+}
+
+// Đóng modal ghi nhận sử dụng.
+function closeUsageModal() {
+  showUsageModal.value = false;
+}
+
+// Validate dữ liệu và gửi API tạo usage log cho thiết bị.
+async function submitUsageLog() {
+  if (!usageDeviceId.value) return;
+
+  const hoursUsed =
+    usageForm.value.hoursUsed !== null && usageForm.value.hoursUsed !== "";
+
+  if (!hoursUsed) {
+    alert("Vui lòng nhập số giờ sử dụng.");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const payload = {
+      hoursUsed: Number(usageForm.value.hoursUsed),
+    };
+
+    const res = await fetch(
+      `${API_BASE}/energy/${usageDeviceId.value}/usage-logs`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.message || "Lưu ghi nhận thất bại");
+    }
+
+    closeUsageModal();
+    alert("Đã lưu ghi nhận sử dụng.");
+
+    if (selectedDevice.value?.id === usageDeviceId.value) {
+      await openDeviceDetail(usageDeviceId.value);
+    }
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Lưu ghi nhận thất bại");
+  }
 }
 
 // Thêm thiết bị mới
@@ -562,7 +768,6 @@ const newDevice = ref({
   room: null,
   type: null,
   powerW: null,
-  hours: null,
   brand: "",
   modelNumber: "",
 });
@@ -581,9 +786,8 @@ async function submitAddDevice() {
 
   try {
     const token = localStorage.getItem("token");
-    console.log("TOKEN:", token);
 
-    const res = await fetch("http://localhost:8080/api/v1/energy", {
+    const res = await fetch(`${API_BASE}/energy`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -596,7 +800,6 @@ async function submitAddDevice() {
         deviceTypeId: newDevice.value.type,
         brand: newDevice.value.brand,
         modelNumber: newDevice.value.modelNumber,
-        hours: Number(newDevice.value.hours) || 0,
       }),
     });
 
@@ -605,9 +808,7 @@ async function submitAddDevice() {
       console.error("Backend error: ", text);
       throw new Error("Thêm thiết bị thất bại");
     }
-
-    const data = await res.json();
-    console.log("Created: ", data);
+    await res.json();
 
     await loadDevices();
     closeAddModal();
@@ -620,46 +821,12 @@ async function submitAddDevice() {
 function resetNewDevice() {
   newDevice.value = {
     name: "",
-    room: "Phòng khách",
-    type: "light",
+    room: rooms.value.length ? rooms.value[0].id : null,
+    type: deviceTypes.value.length ? deviceTypes.value[0].id : null,
     powerW: null,
-    hours: null,
+    brand: "",
+    modelNumber: "",
   };
-}
-
-// Bật/tắt thiết bị
-async function toggleDevice(device) {
-  try {
-    loadingId.value = device.id;
-
-    const token = localStorage.getItem("token");
-
-    const url = device.isOn
-      ? `http://localhost:8080/api/v1/energy/${device.id}/off`
-      : `http://localhost:8080/api/v1/energy/${device.id}/on`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text);
-    }
-
-    // Update lại UI
-    device.isOn = !device.isOn;
-
-    console.log("Toggle success:", device.id);
-  } catch (err) {
-    console.error("Toggle error:", err);
-    alert("Lỗi bật/tắt thiết bị");
-  } finally {
-    loadingId.value = null;
-  }
 }
 
 // Chỉnh sửa thiết bị
@@ -691,24 +858,21 @@ async function submitUpdateDevice() {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(
-      `http://localhost:8080/api/v1/energy/${editingDeviceId.value}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          deviceName: editDevice.value.name,
-          powerRating: Number(editDevice.value.powerW),
-          roomId: editDevice.value.room,
-          deviceTypeId: editDevice.value.type,
-          brand: editDevice.value.brand,
-          modelNumber: editDevice.value.modelNumber,
-        }),
+    const res = await fetch(`${API_BASE}/energy/${editingDeviceId.value}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({
+        deviceName: editDevice.value.name,
+        powerRating: Number(editDevice.value.powerW),
+        roomId: editDevice.value.room,
+        deviceTypeId: editDevice.value.type,
+        brand: editDevice.value.brand,
+        modelNumber: editDevice.value.modelNumber,
+      }),
+    });
 
     if (!res.ok) {
       const text = await res.text();
@@ -730,7 +894,7 @@ async function deleteDevice(id) {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`http://localhost:8080/api/v1/energy/${id}`, {
+    const res = await fetch(`${API_BASE}/energy/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -744,8 +908,6 @@ async function deleteDevice(id) {
     }
 
     devices.value = devices.value.filter((d) => d.id !== id);
-
-    console.log("Deleted:", id);
   } catch (err) {
     console.error(err);
     alert("Xóa thiết bị thất bại");
