@@ -23,7 +23,9 @@ const viewMode = ref("grid");
 const currentPage = ref(0);
 const isDetailOpen = ref(false);
 const currentPost = ref(null);
-const favorites = ref(JSON.parse(localStorage.getItem("blogFavorites") || "[]"));
+const favorites = ref(
+  JSON.parse(localStorage.getItem("blogFavorites") || "[]"),
+);
 
 function refreshIcons() {
   nextTick(() => {
@@ -35,7 +37,10 @@ function refreshIcons() {
 
 function calculateReadingTime(text) {
   const wordsPerMinute = 200;
-  const wordCount = String(text || "").trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = String(text || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 }
 
@@ -88,7 +93,9 @@ const filteredBlogs = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
   if (!q) return sortedBlogs.value;
   return sortedBlogs.value.filter((post) =>
-    String(post.title || "").toLowerCase().includes(q),
+    String(post.title || "")
+      .toLowerCase()
+      .includes(q),
   );
 });
 
@@ -105,10 +112,13 @@ const pageNumbers = computed(() =>
   Array.from({ length: totalPages.value }, (_, index) => index),
 );
 
-const resultsLabel = computed(() => `Tìm thấy ${filteredBlogs.value.length} bài viết`);
+const resultsLabel = computed(
+  () => `Tìm thấy ${filteredBlogs.value.length} bài viết`,
+);
 
 const detailContentHtml = computed(() => {
-  const content = currentPost.value?.content || "Nội dung bài viết chưa được cập nhật.";
+  const content =
+    currentPost.value?.content || "Nội dung bài viết chưa được cập nhật.";
   return content
     .split("\n\n")
     .map((para) => `<p>${escapeHtml(para.trim())}</p>`)
@@ -198,7 +208,9 @@ async function fetchBlogs(forceReload = false) {
   currentPage.value = 0;
 
   try {
-    const response = await fetch(`${API_BASE}/blogs?page=0&size=100&sort=publishedAt,desc`);
+    const response = await fetch(
+      `${API_BASE}/blogs?page=0&size=100&sort=publishedAt,desc`,
+    );
     const result = await parseApiResponse(response);
 
     if (!response.ok) {
@@ -244,11 +256,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="blog-page h-screen w-full overflow-hidden flex text-gray-700 bg-gray-50">
-    <aside class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 z-30">
+  <div
+    class="blog-page h-screen w-full overflow-hidden flex text-gray-700 bg-gray-50"
+  >
+    <aside
+      class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 z-30"
+    >
       <div class="h-16 flex items-center px-6 border-b border-gray-100">
         <i data-lucide="zap" class="text-blue-600 mr-2 w-7 h-7"></i>
-        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
+        <span
+          class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500"
+        >
           SmartHome
         </span>
       </div>
@@ -262,7 +280,7 @@ onMounted(async () => {
           Tổng quan
         </RouterLink>
         <RouterLink
-          to="/home"
+          to="/rooms"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="home" class="mr-3 w-5 h-5"></i>
@@ -305,7 +323,9 @@ onMounted(async () => {
 
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
       <header class="h-16 bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div class="w-full h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div
+          class="w-full h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between"
+        >
           <div class="flex items-center gap-2">
             <i data-lucide="book-open" class="text-blue-600 w-6 h-6"></i>
             <h2 class="text-lg font-semibold text-gray-800">Blog</h2>
@@ -332,221 +352,296 @@ onMounted(async () => {
         </div>
       </header>
 
-      <main class="flex-1 overflow-auto max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <section class="mb-12">
-        <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
-          <div>
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">Blog Tiết Kiệm Điện</h1>
-            <p class="text-lg text-gray-600">Cập nhật các mẹo, kiến thức và kinh nghiệm sử dụng điện hiệu quả</p>
-          </div>
-          <button
-            type="button"
-            @click="fetchBlogs(true)"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium shadow-lg"
-          >
-            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-            Làm mới
-          </button>
-        </div>
-      </section>
-
-      <section class="mb-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-        <div class="space-y-4">
-          <div class="flex items-center gap-4 flex-wrap">
-            <div class="relative flex-1 min-w-xs">
-              <i data-lucide="search" class="absolute left-4 top-3 w-4 h-4 text-gray-400"></i>
-              <input
-                type="text"
-                placeholder="Tìm kiếm bài viết..."
-                class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                :value="searchQuery"
-                @input="updateSearch($event.target.value)"
-              />
-            </div>
-
-            <select
-              :value="currentSort"
-              @change="updateSort($event.target.value)"
-              class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all cursor-pointer"
-            >
-              <option value="date-desc">Mới nhất trước</option>
-              <option value="date-asc">Cũ nhất trước</option>
-              <option value="title-asc">A → Z</option>
-              <option value="title-desc">Z → A</option>
-            </select>
-          </div>
-
-          <div class="flex items-center justify-between text-sm gap-2 flex-wrap">
-            <span class="text-gray-600 font-medium">{{ resultsLabel }}</span>
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                @click="toggleViewMode('grid')"
-                class="p-2 rounded-lg transition-colors"
-                :class="viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-600'"
-              >
-                <i data-lucide="grid" class="w-4 h-4"></i>
-              </button>
-              <button
-                type="button"
-                @click="toggleViewMode('list')"
-                class="p-2 rounded-lg transition-colors"
-                :class="viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-600'"
-              >
-                <i data-lucide="list" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div class="mb-6">
-        <div
-          v-if="loading"
-          class="p-4 rounded-xl bg-blue-50 text-blue-700 text-sm flex items-center gap-2"
-        >
-          <div class="animate-spin"><i data-lucide="loader-circle" class="w-4 h-4"></i></div>
-          Đang tải bài viết...
-        </div>
-
-        <div
-          v-else-if="error"
-          class="p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm flex items-center justify-between gap-3"
-        >
-          <span>{{ error }}</span>
-          <button
-            type="button"
-            @click="fetchBlogs(true)"
-            class="px-3 py-1 rounded-lg bg-red-100 hover:bg-red-200 font-medium"
-          >
-            Thử lại
-          </button>
-        </div>
-
-        <div
-          v-else-if="!filteredBlogs.length"
-          class="p-4 rounded-xl bg-gray-100 text-gray-600 text-sm"
-        >
-          {{
-            searchQuery
-              ? `Không tìm thấy bài viết với từ khóa: "${searchQuery}"`
-              : "Chưa có bài viết nào."
-          }}
-        </div>
-      </div>
-
-      <div
-        v-if="!loading && !error && paginatedBlogs.length"
-        :class="
-          viewMode === 'list' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-        "
+      <main
+        class="flex-1 overflow-auto max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12"
       >
-        <article
-          v-for="post in paginatedBlogs"
-          :key="post.id"
-          class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
-          :class="viewMode === 'list' ? 'flex' : 'relative'"
-          @click="openBlogDetail(post)"
-        >
-          <template v-if="viewMode === 'list'">
-            <div class="w-48 h-32 overflow-hidden bg-gray-100 flex-shrink-0">
-              <img
-                :src="post.thumbnailUrl || DEFAULT_THUMBNAIL"
-                :alt="post.title || 'Bài viết'"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-5 flex-1 flex flex-col">
-              <h3 class="font-bold text-gray-800 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                {{ post.title || "Bài viết chưa có tiêu đề" }}
-              </h3>
-              <p class="text-sm text-gray-500 mb-3 flex-1 line-clamp-2">
-                {{ post.summary || post.content || "Bài viết chưa có mô tả ngắn." }}
+        <section class="mb-12">
+          <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <div>
+              <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                Blog Tiết Kiệm Điện
+              </h1>
+              <p class="text-lg text-gray-600">
+                Cập nhật các mẹo, kiến thức và kinh nghiệm sử dụng điện hiệu quả
               </p>
-              <div class="text-xs text-gray-400 flex items-center justify-between gap-2 flex-wrap">
-                <span class="flex items-center"><i data-lucide="user" class="w-3 h-3 mr-1"></i>{{ post.authorName || "SmartHome Team" }}</span>
-                <span class="flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1"></i>{{ calculateReadingTime(post.content) }} phút</span>
-                <span class="flex items-center"><i data-lucide="calendar" class="w-3 h-3 mr-1"></i>{{ formatBlogDate(post.publishedAt) }}</span>
-                <button type="button" @click.stop="toggleBlogFavoriteQuick(post.id)" class="ml-auto">
-                  <i
-                    data-lucide="heart"
-                    class="w-4 h-4"
-                    :class="favorites.includes(post.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'"
-                  ></i>
+            </div>
+            <button
+              type="button"
+              @click="fetchBlogs(true)"
+              class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium shadow-lg"
+            >
+              <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+              Làm mới
+            </button>
+          </div>
+        </section>
+
+        <section
+          class="mb-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
+        >
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="relative flex-1 min-w-xs">
+                <i
+                  data-lucide="search"
+                  class="absolute left-4 top-3 w-4 h-4 text-gray-400"
+                ></i>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm bài viết..."
+                  class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  :value="searchQuery"
+                  @input="updateSearch($event.target.value)"
+                />
+              </div>
+
+              <select
+                :value="currentSort"
+                @change="updateSort($event.target.value)"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all cursor-pointer"
+              >
+                <option value="date-desc">Mới nhất trước</option>
+                <option value="date-asc">Cũ nhất trước</option>
+                <option value="title-asc">A → Z</option>
+                <option value="title-desc">Z → A</option>
+              </select>
+            </div>
+
+            <div
+              class="flex items-center justify-between text-sm gap-2 flex-wrap"
+            >
+              <span class="text-gray-600 font-medium">{{ resultsLabel }}</span>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  @click="toggleViewMode('grid')"
+                  class="p-2 rounded-lg transition-colors"
+                  :class="
+                    viewMode === 'grid'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'hover:bg-gray-100 text-gray-600'
+                  "
+                >
+                  <i data-lucide="grid" class="w-4 h-4"></i>
+                </button>
+                <button
+                  type="button"
+                  @click="toggleViewMode('list')"
+                  class="p-2 rounded-lg transition-colors"
+                  :class="
+                    viewMode === 'list'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'hover:bg-gray-100 text-gray-600'
+                  "
+                >
+                  <i data-lucide="list" class="w-4 h-4"></i>
                 </button>
               </div>
             </div>
-          </template>
+          </div>
+        </section>
 
-          <template v-else>
+        <div class="mb-6">
+          <div
+            v-if="loading"
+            class="p-4 rounded-xl bg-blue-50 text-blue-700 text-sm flex items-center gap-2"
+          >
+            <div class="animate-spin">
+              <i data-lucide="loader-circle" class="w-4 h-4"></i>
+            </div>
+            Đang tải bài viết...
+          </div>
+
+          <div
+            v-else-if="error"
+            class="p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm flex items-center justify-between gap-3"
+          >
+            <span>{{ error }}</span>
             <button
               type="button"
-              @click.stop="toggleBlogFavoriteQuick(post.id)"
-              class="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:scale-110 transition-transform"
+              @click="fetchBlogs(true)"
+              class="px-3 py-1 rounded-lg bg-red-100 hover:bg-red-200 font-medium"
             >
-              <i
-                data-lucide="heart"
-                class="w-5 h-5"
-                :class="favorites.includes(post.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'"
-              ></i>
+              Thử lại
             </button>
-            <div class="h-44 overflow-hidden bg-gray-100 relative">
-              <img
-                :src="post.thumbnailUrl || DEFAULT_THUMBNAIL"
-                :alt="post.title || 'Bài viết'"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-5">
-              <h3 class="font-bold text-gray-800 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                {{ post.title || "Bài viết chưa có tiêu đề" }}
-              </h3>
-              <p class="text-sm text-gray-500 mb-4 line-clamp-3">
-                {{ post.summary || post.content || "Bài viết chưa có mô tả ngắn." }}
-              </p>
-              <div class="text-xs text-gray-400 flex items-center justify-between gap-2 flex-wrap">
-                <span class="flex items-center"><i data-lucide="user" class="w-3 h-3 mr-1"></i>{{ post.authorName || "SmartHome Team" }}</span>
-                <span class="flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1"></i>{{ calculateReadingTime(post.content) }} phút</span>
-                <span class="flex items-center"><i data-lucide="calendar" class="w-3 h-3 mr-1"></i>{{ formatBlogDate(post.publishedAt) }}</span>
+          </div>
+
+          <div
+            v-else-if="!filteredBlogs.length"
+            class="p-4 rounded-xl bg-gray-100 text-gray-600 text-sm"
+          >
+            {{
+              searchQuery
+                ? `Không tìm thấy bài viết với từ khóa: "${searchQuery}"`
+                : "Chưa có bài viết nào."
+            }}
+          </div>
+        </div>
+
+        <div
+          v-if="!loading && !error && paginatedBlogs.length"
+          :class="
+            viewMode === 'list'
+              ? 'space-y-4'
+              : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
+          "
+        >
+          <article
+            v-for="post in paginatedBlogs"
+            :key="post.id"
+            class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
+            :class="viewMode === 'list' ? 'flex' : 'relative'"
+            @click="openBlogDetail(post)"
+          >
+            <template v-if="viewMode === 'list'">
+              <div class="w-48 h-32 overflow-hidden bg-gray-100 flex-shrink-0">
+                <img
+                  :src="post.thumbnailUrl || DEFAULT_THUMBNAIL"
+                  :alt="post.title || 'Bài viết'"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
-            </div>
-          </template>
-        </article>
-      </div>
+              <div class="p-5 flex-1 flex flex-col">
+                <h3
+                  class="font-bold text-gray-800 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors"
+                >
+                  {{ post.title || "Bài viết chưa có tiêu đề" }}
+                </h3>
+                <p class="text-sm text-gray-500 mb-3 flex-1 line-clamp-2">
+                  {{
+                    post.summary ||
+                    post.content ||
+                    "Bài viết chưa có mô tả ngắn."
+                  }}
+                </p>
+                <div
+                  class="text-xs text-gray-400 flex items-center justify-between gap-2 flex-wrap"
+                >
+                  <span class="flex items-center"
+                    ><i data-lucide="user" class="w-3 h-3 mr-1"></i
+                    >{{ post.authorName || "SmartHome Team" }}</span
+                  >
+                  <span class="flex items-center"
+                    ><i data-lucide="clock" class="w-3 h-3 mr-1"></i
+                    >{{ calculateReadingTime(post.content) }} phút</span
+                  >
+                  <span class="flex items-center"
+                    ><i data-lucide="calendar" class="w-3 h-3 mr-1"></i
+                    >{{ formatBlogDate(post.publishedAt) }}</span
+                  >
+                  <button
+                    type="button"
+                    @click.stop="toggleBlogFavoriteQuick(post.id)"
+                    class="ml-auto"
+                  >
+                    <i
+                      data-lucide="heart"
+                      class="w-4 h-4"
+                      :class="
+                        favorites.includes(post.id)
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-gray-400'
+                      "
+                    ></i>
+                  </button>
+                </div>
+              </div>
+            </template>
 
-      <div
-        v-if="!loading && !error && totalPages > 1"
-        class="mt-12 flex items-center justify-center gap-3 flex-wrap"
-      >
-        <button
-          v-if="currentPage > 0"
-          type="button"
-          @click="setPage(currentPage - 1)"
-          class="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 flex items-center gap-2 transition-colors"
-        >
-          <i data-lucide="chevron-left" class="w-4 h-4"></i>Trước
-        </button>
+            <template v-else>
+              <button
+                type="button"
+                @click.stop="toggleBlogFavoriteQuick(post.id)"
+                class="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:scale-110 transition-transform"
+              >
+                <i
+                  data-lucide="heart"
+                  class="w-5 h-5"
+                  :class="
+                    favorites.includes(post.id)
+                      ? 'fill-red-500 text-red-500'
+                      : 'text-gray-400'
+                  "
+                ></i>
+              </button>
+              <div class="h-44 overflow-hidden bg-gray-100 relative">
+                <img
+                  :src="post.thumbnailUrl || DEFAULT_THUMBNAIL"
+                  :alt="post.title || 'Bài viết'"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div class="p-5">
+                <h3
+                  class="font-bold text-gray-800 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors"
+                >
+                  {{ post.title || "Bài viết chưa có tiêu đề" }}
+                </h3>
+                <p class="text-sm text-gray-500 mb-4 line-clamp-3">
+                  {{
+                    post.summary ||
+                    post.content ||
+                    "Bài viết chưa có mô tả ngắn."
+                  }}
+                </p>
+                <div
+                  class="text-xs text-gray-400 flex items-center justify-between gap-2 flex-wrap"
+                >
+                  <span class="flex items-center"
+                    ><i data-lucide="user" class="w-3 h-3 mr-1"></i
+                    >{{ post.authorName || "SmartHome Team" }}</span
+                  >
+                  <span class="flex items-center"
+                    ><i data-lucide="clock" class="w-3 h-3 mr-1"></i
+                    >{{ calculateReadingTime(post.content) }} phút</span
+                  >
+                  <span class="flex items-center"
+                    ><i data-lucide="calendar" class="w-3 h-3 mr-1"></i
+                    >{{ formatBlogDate(post.publishedAt) }}</span
+                  >
+                </div>
+              </div>
+            </template>
+          </article>
+        </div>
 
-        <button
-          v-for="page in pageNumbers"
-          :key="page"
-          type="button"
-          @click="setPage(page)"
-          class="w-10 h-10 rounded-lg transition-colors font-medium"
-          :class="page === currentPage ? 'bg-blue-600 text-white' : 'border border-gray-200 hover:bg-gray-100'"
+        <div
+          v-if="!loading && !error && totalPages > 1"
+          class="mt-12 flex items-center justify-center gap-3 flex-wrap"
         >
-          {{ page + 1 }}
-        </button>
+          <button
+            v-if="currentPage > 0"
+            type="button"
+            @click="setPage(currentPage - 1)"
+            class="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+          >
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>Trước
+          </button>
 
-        <button
-          v-if="currentPage < totalPages - 1"
-          type="button"
-          @click="setPage(currentPage + 1)"
-          class="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 flex items-center gap-2 transition-colors"
-        >
-          Sau<i data-lucide="chevron-right" class="w-4 h-4"></i>
-        </button>
-      </div>
+          <button
+            v-for="page in pageNumbers"
+            :key="page"
+            type="button"
+            @click="setPage(page)"
+            class="w-10 h-10 rounded-lg transition-colors font-medium"
+            :class="
+              page === currentPage
+                ? 'bg-blue-600 text-white'
+                : 'border border-gray-200 hover:bg-gray-100'
+            "
+          >
+            {{ page + 1 }}
+          </button>
+
+          <button
+            v-if="currentPage < totalPages - 1"
+            type="button"
+            @click="setPage(currentPage + 1)"
+            class="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+          >
+            Sau<i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
       </main>
     </div>
 
@@ -555,9 +650,15 @@ onMounted(async () => {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-6 overflow-y-auto"
       @click.self="closeBlogDetail"
     >
-      <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-6">
-        <div class="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-start z-10">
-          <h2 class="text-2xl font-bold text-gray-800 pr-4 line-clamp-2">{{ currentPost.title || "Bài viết không có tiêu đề" }}</h2>
+      <div
+        class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-6"
+      >
+        <div
+          class="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-start z-10"
+        >
+          <h2 class="text-2xl font-bold text-gray-800 pr-4 line-clamp-2">
+            {{ currentPost.title || "Bài viết không có tiêu đề" }}
+          </h2>
           <button
             type="button"
             @click="closeBlogDetail"
@@ -572,17 +673,35 @@ onMounted(async () => {
             :alt="currentPost.title || 'Blog thumbnail'"
             class="w-full h-64 object-cover rounded-2xl"
           />
-          <div class="flex items-center justify-between text-sm text-gray-500 flex-wrap gap-2">
-            <span class="flex items-center"><i data-lucide="user" class="w-4 h-4 mr-1"></i>{{ currentPost.authorName || "SmartHome Team" }}</span>
-            <span class="flex items-center"><i data-lucide="calendar" class="w-4 h-4 mr-1"></i>{{ formatBlogDate(currentPost.publishedAt) }}</span>
-            <span class="flex items-center text-amber-600"><i data-lucide="clock" class="w-4 h-4 mr-1"></i>{{ calculateReadingTime(currentPost.content) }} phút đọc</span>
+          <div
+            class="flex items-center justify-between text-sm text-gray-500 flex-wrap gap-2"
+          >
+            <span class="flex items-center"
+              ><i data-lucide="user" class="w-4 h-4 mr-1"></i
+              >{{ currentPost.authorName || "SmartHome Team" }}</span
+            >
+            <span class="flex items-center"
+              ><i data-lucide="calendar" class="w-4 h-4 mr-1"></i
+              >{{ formatBlogDate(currentPost.publishedAt) }}</span
+            >
+            <span class="flex items-center text-amber-600"
+              ><i data-lucide="clock" class="w-4 h-4 mr-1"></i
+              >{{ calculateReadingTime(currentPost.content) }} phút đọc</span
+            >
           </div>
-          <div class="p-4 bg-blue-50 rounded-xl text-blue-900 text-sm font-medium border border-blue-200">
+          <div
+            class="p-4 bg-blue-50 rounded-xl text-blue-900 text-sm font-medium border border-blue-200"
+          >
             {{ detailSummary }}
           </div>
-          <div class="prose prose-sm text-gray-700 leading-relaxed space-y-3" v-html="detailContentHtml"></div>
+          <div
+            class="prose prose-sm text-gray-700 leading-relaxed space-y-3"
+            v-html="detailContentHtml"
+          ></div>
 
-          <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap">
+          <div
+            class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap"
+          >
             <button
               type="button"
               @click="toggleBlogFavorite"
