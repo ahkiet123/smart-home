@@ -72,7 +72,7 @@ onUnmounted(() => {
         </a>
 
         <a
-          href="blog.html"
+          href="/blog"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
           id="nav-blog"
         >
