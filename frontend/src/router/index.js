@@ -5,6 +5,17 @@ import RegisterView from "../views/auth/RegisterView.vue";
 import ForgotPasswordView from "../views/auth/ForgotPasswordView.vue";
 import HomeView from "../views/home.vue";
 import BlogView from "../views/BlogView.vue";
+import RoomListView from "../views/room/RoomListView.vue";
+import RoomDetailView from "../views/room/RoomDetailView.vue";
+
+const requireAuth = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return "/login";
+  }
+
+  return true;
+};
 
 const routes = [
   {
@@ -26,26 +37,26 @@ const routes = [
   {
     path: "/home",
     component: HomeView,
-    beforeEnter: () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return "/login";
-      }
-
-      return true;
-    },
+    beforeEnter: requireAuth,
+  },
+  {
+    path: "/homes",
+    redirect: "/rooms",
+  },
+  {
+    path: "/rooms",
+    component: RoomListView,
+    beforeEnter: requireAuth,
+  },
+  {
+    path: "/rooms/:id",
+    component: RoomDetailView,
+    beforeEnter: requireAuth,
   },
   {
     path: "/blog",
     component: BlogView,
-    beforeEnter: () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return "/login";
-      }
-
-      return true;
-    },
+    beforeEnter: requireAuth,
   },
 ];
 

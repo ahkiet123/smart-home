@@ -47,13 +47,12 @@ onUnmounted(() => {
         >
           <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i> Tổng quan
         </a>
-        <a
-          href="#"
-          onclick="showRoomStats()"
+        <RouterLink
+          to="/rooms"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="home" class="mr-3 w-5 h-5"></i> Phòng ốc
-        </a>
+        </RouterLink>
         <a
           href="#"
           onclick="switchDashboardTab('energy-page')"
