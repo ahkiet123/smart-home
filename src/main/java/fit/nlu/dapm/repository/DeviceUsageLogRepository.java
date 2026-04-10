@@ -15,5 +15,7 @@ import java.util.Optional;
 public interface DeviceUsageLogRepository extends JpaRepository<DeviceUsageLog, Long> {
     Page<DeviceUsageLog> findByDevice(Device device, Pageable pageable);
     List<DeviceUsageLog> findByDeviceAndUsageDateBetween(Device device, LocalDate startDate, LocalDate endDate);
-    Optional<DeviceUsageLog> findByDeviceAndUsageDate(Device device, LocalDate usageDate);
+    Optional<DeviceUsageLog> findTopByDeviceAndEndTimeIsNull(Device device);
+    // log theo ngày
+    List<DeviceUsageLog> findByDeviceAndUsageDate(Device device, LocalDate date);
 }

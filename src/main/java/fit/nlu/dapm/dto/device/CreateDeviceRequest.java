@@ -1,20 +1,17 @@
 package fit.nlu.dapm.dto.device;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
-public class DeviceResponse {
-    private Long id;
+public class CreateDeviceRequest {
     private String deviceName;
-    private String roomName;
+    private Double powerRating;
     private Long roomId;
     private Long deviceTypeId;
-    private Double powerRating;
-    private Boolean isOn;
     private String brand;
     private String modelNumber;
+    private Double hours;
+    private Boolean isOn;
 }

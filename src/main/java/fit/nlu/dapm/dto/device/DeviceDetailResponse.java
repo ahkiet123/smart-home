@@ -7,14 +7,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class DeviceResponse {
+public class DeviceDetailResponse {
     private Long id;
     private String deviceName;
     private String roomName;
-    private Long roomId;
-    private Long deviceTypeId;
     private Double powerRating;
+    private Double hours;
     private Boolean isOn;
-    private String brand;
-    private String modelNumber;
+    private Double kwhToday;
+    private Double costToday;
 }

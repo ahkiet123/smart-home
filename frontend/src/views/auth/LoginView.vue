@@ -55,12 +55,12 @@ const doLogin = async () => {
       return;
     }
 
-    // ✅ lưu token
+    // lưu token
     localStorage.setItem("token", token);
     localStorage.setItem("userEmail", email.value);
 
-    // ✅ chuyển trang
-    window.location.href = "/";
+    // chuyển trang
+    router.push("/devices");
   } catch (error) {
     console.error(error);
     alert("Không thể kết nối tới server");
@@ -69,7 +69,7 @@ const doLogin = async () => {
   }
 };
 
-// 👉 điều hướng
+// điều hướng
 const goToForgot = () => router.push("/forgot-password");
 const goToRegister = () => router.push("/register");
 </script>

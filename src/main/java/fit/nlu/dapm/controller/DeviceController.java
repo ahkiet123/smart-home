@@ -1,5 +1,7 @@
 package fit.nlu.dapm.controller;
 
+import fit.nlu.dapm.dto.device.CreateDeviceRequest;
+import fit.nlu.dapm.dto.device.UpdateDeviceRequest;
 import fit.nlu.dapm.service.DeviceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +11,7 @@ import java.time.LocalDate;
 import java.util.Map; // PHẢI CÓ DÒNG NÀY
 
 @RestController
-@RequestMapping("/api/v1/energy")
+@RequestMapping("/energy") // nhớ đổi đươnờng dẫn
 @CrossOrigin(origins = "*")
 public class DeviceController {
 
@@ -53,4 +55,33 @@ public class DeviceController {
             @RequestParam int year) {
         return ResponseEntity.ok(deviceService.getMonthlyLogs(month, year));
     }
+
+    @GetMapping
+    public ResponseEntity<?> getAllDevices() {
+        return ResponseEntity.ok(deviceService.getAllDevices());
+    }
+
+
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody CreateDeviceRequest req) {
+        return ResponseEntity.ok(deviceService.createDevice(req));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id,
+                                    @RequestBody UpdateDeviceRequest req) {
+        return ResponseEntity.ok(deviceService.updateDevice(id, req));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        deviceService.deleteDevice(id);
+        return ResponseEntity.ok("Deleted successfully");
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getDeviceDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(deviceService.getDeviceDetail(id));
+    }
+
 }

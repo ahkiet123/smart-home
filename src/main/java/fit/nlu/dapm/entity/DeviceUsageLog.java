@@ -27,6 +27,9 @@ public class DeviceUsageLog {
     @Column(name = "hours_used")
     private Double hoursUsed;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
 }
