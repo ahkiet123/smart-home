@@ -12,6 +12,14 @@ import java.util.List;
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
     List<Device> findByRoom(Room room);
-
     List<Device> findAllByOrderByIdAsc();
+
+    @Query("""
+            SELECT d
+            FROM Device d
+            JOIN d.room r
+            JOIN r.home h
+            WHERE h.user.id = :userId
+            """)
+    List<Device> findAllByUserId(@Param("userId") Long userId);
 }
