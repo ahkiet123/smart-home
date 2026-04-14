@@ -2,6 +2,8 @@ package fit.nlu.dapm.controller;
 
 import fit.nlu.dapm.dto.ApiResponse;
 import fit.nlu.dapm.dto.auth.*;
+import fit.nlu.dapm.exception.BadRequestException;
+import fit.nlu.dapm.security.SecurityUtil;
 import fit.nlu.dapm.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,9 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private SecurityUtil securityUtil;
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         AuthResponse response = authService.login(loginRequest);
@@ -28,7 +33,13 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         authService.register(registerRequest);
-        return new ResponseEntity<>(ApiResponse.success("Registration successful", null), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResponse.success("OTP sent to email", null), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/register/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyRegisterOTP(@Valid @RequestBody RegisterOtpRequest request) {
+        authService.verifyRegistrationOTP(request);
+        return ResponseEntity.ok(ApiResponse.success("Registration successful", null));
     }
 
     @PostMapping("/forgot-password")
@@ -43,4 +54,24 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("OTP valid", null));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        Long userId = securityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BadRequestException("Unauthorized");
+        }
+
+        authService.changePassword(userId, request);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> reset(@RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(
+                req.getEmail(),
+                req.getOtp(),
+                req.getNewPassword()
+        );
+        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
+    }
 }

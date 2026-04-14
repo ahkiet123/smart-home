@@ -1,16 +1,12 @@
 package fit.nlu.dapm.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "rooms")
-@Getter
-@Setter
 public class Room extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,4 +26,36 @@ public class Room extends BaseEntity {
 
     public void setHome(Home home) { this.home = home; }
     public Home getHome() { return home; }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
+    }
+
+    public Double getArea() {
+        return area;
+    }
+
+    public void setArea(Double area) {
+        this.area = area;
+    }
+
+    public List<Device> getDevices() {
+        return devices;
+    }
+
+    public void setDevices(List<Device> devices) {
+        this.devices = devices;
+    }
 }

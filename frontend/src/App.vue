@@ -1,54 +1,66 @@
-<script setup>
-// 1. Import Component mới mà bạn vừa tạo trong thư mục components
-import ElectricityCalculator from './components/ElectricityCalculator.vue'
-</script>
-
 <template>
-  <div class="app-container">
-    <header class="dashboard-header">
-      <h1>☘️ Smart Home Energy Dashboard</h1>
-      <p>Quản lý và dự toán tiêu thụ điện năng thông minh</p>
-    </header>
-
-    <main>
-      <ElectricityCalculator />
-    </main>
-
-    <footer class="app-footer">
-      <p>&copy; 2026 - Đồ án Phát triển phần mềm - Nhóm SmartHome</p>
-    </footer>
-  </div>
+  <router-view />
 </template>
 
 <style>
-/* Style cơ bản để giao diện trông chuyên nghiệp hơn */
+/* RESET TOÀN BỘ ĐỂ KHÔNG BỊ NHỎ NHƯ CŨ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 #app {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 100% !important; /* Xóa bỏ giới hạn 1200px cũ */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.full-page-wrapper {
+  background-color: #f4f7fe;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 40px 20px;
   text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.dashboard-header {
-  margin-bottom: 3rem;
+.main-header h1 {
+  font-size: 3rem; /* Cho tiêu đề to hẳn lên */
+  letter-spacing: 2px;
+  margin-bottom: 10px;
 }
 
-.dashboard-header h1 {
-  font-size: 2.5rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
+.main-body {
+  flex: 1;
+  padding: 50px 20px;
+  display: flex;
+  justify-content: center;
 }
 
-.dashboard-header p {
-  color: #7f8c8d;
-  font-size: 1.1rem;
+.container-expanded {
+  width: 100%;
+  max-width: 1400px; /* Nới rộng khung hiển thị */
 }
 
-.app-footer {
-  margin-top: 4rem;
-  padding-top: 2rem;
+.main-footer {
+  padding: 30px;
+  background: #fff;
   border-top: 1px solid #eee;
-  color: #bdc3c7;
-  font-size: 0.9rem;
+  color: #888;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Đảm bảo font chữ Inter hoặc Sans-serif cho sạch */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 </style>
