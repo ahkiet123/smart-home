@@ -132,14 +132,27 @@ public class RoomService {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
 
-        mapper.mapTo(request, room);
+        // Update explicitly to avoid ModelMapper trying to bind homeId -> home entity.
+        room.setRoomName(request.getRoomName());
+        room.setRoomType(request.getRoomType());
+        room.setArea(request.getArea());
+
+        if (request.getHomeId() != null
+            && (room.getHome() == null || !request.getHomeId().equals(room.getHome().getId()))) {
+            Home newHome = homeRepository.findById(request.getHomeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Home not found"));
+            room.setHome(newHome);
+        }
+
         room = roomRepository.save(room);
         return mapper.map(room, RoomResponse.class);
     }
 
     @Transactional
     public void deleteRoom(Long roomId) {
-        roomRepository.deleteById(roomId);
+        Room room = roomRepository.findById(roomId)
+            .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+        roomRepository.delete(room);
     }
 
     private Home resolvePrimaryHome(Long userId) {
