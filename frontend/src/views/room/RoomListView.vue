@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 const API_BASE =
   window.location.port === "5173" || window.location.port === "4173"
@@ -8,6 +8,15 @@ const API_BASE =
     : "/api/v1";
 
 const router = useRouter();
+const route = useRoute();
+
+const isCurrentPage = (path, tab = null) => {
+  if (route.path !== path) return false;
+  if (tab === null) {
+    return !route.query.tab;
+  }
+  return route.query.tab === tab;
+};
 
 const rooms = ref([]);
 const loading = ref(false);
@@ -16,13 +25,17 @@ const searchQuery = ref("");
 const sortBy = ref("kwh");
 const sortOrder = ref("desc");
 const showAddModal = ref(false);
+const showEditModal = ref(false);
 const submitting = ref(false);
 
 const roomForm = ref({
   roomName: "",
   roomType: "",
   area: "",
+  homeId: null,
 });
+
+const editingRoom = ref(null);
 
 function parseApiResponse(response) {
   const contentType = response.headers.get("content-type") || "";
@@ -85,7 +98,9 @@ function closeAddModal() {
     roomName: "",
     roomType: "",
     area: "",
+    homeId: null,
   };
+  refreshIcons();
 }
 
 async function loadRooms() {
@@ -122,6 +137,7 @@ async function loadRooms() {
     rooms.value = [];
   } finally {
     loading.value = false;
+    refreshIcons();
   }
 }
 
@@ -133,22 +149,27 @@ async function submitRoom() {
 
   submitting.value = true;
   try {
+    const token = localStorage.getItem("token");
+
     const response = await fetch(`${API_BASE}/rooms`, {
       method: "POST",
-      headers: authHeaders({
+      headers: {
         "Content-Type": "application/json",
-      }),
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
+        homeId: roomForm.value.homeId,
         roomName: roomForm.value.roomName.trim(),
         roomType: roomForm.value.roomType.trim(),
         area: roomForm.value.area === "" ? null : Number(roomForm.value.area),
       }),
     });
 
-    const result = await parseApiResponse(response);
-
     if (!response.ok) {
-      throw new Error(result.message || "Thêm phòng thất bại");
+      const result = await parseApiResponse(response);
+      const message = result?.message || "Thêm phòng thất bại";
+      console.error("Error:", result);
+      throw new Error(message);
     }
 
     closeAddModal();
@@ -164,6 +185,116 @@ async function submitRoom() {
 
 function openRoomDetail(room) {
   router.push(`/rooms/${room.id}`);
+}
+
+/**
+ * Mở modal sửa phòng với thông tin phòng hiện tại
+ */
+function openEditModal(room) {
+  editingRoom.value = room;
+  roomForm.value = {
+    roomName: room.roomName,
+    roomType: room.roomType || "",
+    area: room.area || "",
+    homeId: room.homeId,
+  };
+  showEditModal.value = true;
+  refreshIcons();
+}
+
+/**
+ * Đóng modal sửa phòng
+ */
+function closeEditModal() {
+  showEditModal.value = false;
+  editingRoom.value = null;
+  roomForm.value = {
+    roomName: "",
+    roomType: "",
+    area: "",
+    homeId: null,
+  };
+  refreshIcons();
+}
+
+/**
+ * Cập nhật thông tin phòng
+ */
+async function submitEditRoom() {
+  if (!roomForm.value.roomName.trim()) {
+    alert("Vui lòng nhập tên phòng.");
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_BASE}/rooms/${editingRoom.value.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        homeId: roomForm.value.homeId,
+        roomName: roomForm.value.roomName.trim(),
+        roomType: roomForm.value.roomType.trim(),
+        area: roomForm.value.area === "" ? null : Number(roomForm.value.area),
+      }),
+    });
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error("Error:", text);
+      throw new Error("Cập nhật phòng thất bại");
+    }
+
+    closeEditModal();
+    await loadRooms();
+    alert("Đã cập nhật thông tin phòng.");
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Cập nhật phòng thất bại");
+  } finally {
+    submitting.value = false;
+  }
+}
+
+/**
+ * Xóa phòng (cần xác nhận)
+ */
+async function deleteRoom(room) {
+  if (!confirm(`Bạn có chắc muốn xóa phòng "${room.roomName}"?`)) {
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_BASE}/rooms/${room.id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Error:", text);
+      throw new Error("Xóa phòng thất bại");
+    }
+
+    await loadRooms();
+    alert("Đã xóa phòng.");
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Xóa phòng thất bại");
+  } finally {
+    submitting.value = false;
+  }
 }
 
 const emptyStateTitle = computed(() => {
@@ -211,40 +342,88 @@ onMounted(async () => {
       <nav class="p-4 space-y-2 flex-1">
         <RouterLink
           to="/home"
-          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+          :class="[
+            isCurrentPage('/home')
+              ? 'text-blue-700 bg-blue-50'
+              : 'text-gray-600 hover:bg-gray-50',
+          ]"
+          class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="layout-dashboard" class="mr-3 w-5 h-5"></i>
           Tổng quan
         </RouterLink>
         <RouterLink
           to="/rooms"
-          class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-medium transition-colors"
+          :class="[
+            isCurrentPage('/rooms')
+              ? 'text-blue-700 bg-blue-50'
+              : 'text-gray-600 hover:bg-gray-50',
+          ]"
+          class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="home" class="mr-3 w-5 h-5"></i>
           Phòng ốc
         </RouterLink>
         <RouterLink
-          to="/home"
-          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+          to="/home?tab=energy-page"
+          :class="[
+            isCurrentPage('/home', 'energy-page')
+              ? 'text-blue-700 bg-blue-50'
+              : 'text-gray-600 hover:bg-gray-50',
+          ]"
+          class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="activity" class="mr-3 w-5 h-5"></i>
           Thống kê điện
         </RouterLink>
         <RouterLink
-          to="/home"
-          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+          to="/calculator"
+          :class="[
+            isCurrentPage('/calculator')
+              ? 'text-blue-700 bg-blue-50'
+              : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700',
+          ]"
+          class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="calculator" class="mr-3 w-5 h-5"></i>
+          Máy tính điện
+        </RouterLink>
+        <RouterLink
+          to="/home?tab=profile-page"
+          :class="[
+            isCurrentPage('/home', 'profile-page')
+              ? 'text-blue-700 bg-blue-50'
+              : 'text-gray-600 hover:bg-gray-50',
+          ]"
+          class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="user" class="mr-3 w-5 h-5"></i>
           Hồ sơ cá nhân
         </RouterLink>
         <RouterLink
           to="/blog"
-          class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
+          :class="[
+            isCurrentPage('/blog')
+              ? 'text-blue-700 bg-blue-50'
+              : 'text-gray-600 hover:bg-gray-50',
+          ]"
+          class="flex items-center px-4 py-3 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="book-open" class="mr-3 w-5 h-5"></i>
           Blog
         </RouterLink>
       </nav>
+
+      <div class="p-4 border-t border-gray-100">
+        <button
+          type="button"
+          @click="doLogout"
+          class="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="log-out" class="mr-3 w-5 h-5"></i>
+          Đăng xuất
+        </button>
+      </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
@@ -367,53 +546,72 @@ onMounted(async () => {
             v-else-if="rooms.length"
             class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
           >
-            <button
+            <div
               v-for="room in rooms"
               :key="room.id"
-              @click="openRoomDetail(room)"
-              class="text-left bg-white rounded-2xl p-5 border border-gray-100 shadow-md shadow-blue-50/40 hover:shadow-lg hover:border-blue-200 transition-all duration-200 group"
+              class="bg-white rounded-2xl p-5 border border-gray-100 shadow-md shadow-blue-50/40 hover:shadow-lg hover:border-blue-200 transition-all duration-200 group"
             >
               <div class="flex items-start justify-between gap-3 mb-4">
-                <div
-                  class="p-3 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-100"
+                <button
+                  @click="openRoomDetail(room)"
+                  class="p-3 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 hover:scale-105 transition-transform"
                 >
                   <i data-lucide="home" class="w-6 h-6"></i>
+                </button>
+                <div class="flex gap-2">
+                  <button
+                    @click.stop="openEditModal(room)"
+                    class="p-2 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+                    title="Sửa phòng"
+                  >
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                  </button>
+                  <button
+                    @click.stop="deleteRoom(room)"
+                    class="p-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                    title="Xóa phòng"
+                  >
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
                 </div>
+              </div>
+
+              <button @click="openRoomDetail(room)" class="text-left w-full">
                 <span
-                  class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full"
+                  class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full inline-block mb-4"
                 >
                   {{ room.deviceCount }} thiết bị
                 </span>
-              </div>
 
-              <h3 class="text-lg font-semibold text-gray-800 mb-1">
-                {{ room.roomName }}
-              </h3>
-              <p class="text-sm text-gray-500 mb-4">
-                {{ room.roomType || "Chưa có loại phòng" }}
-              </p>
+                <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                  {{ room.roomName }}
+                </h3>
+                <p class="text-sm text-gray-500 mb-4">
+                  {{ room.roomType || "Chưa có loại phòng" }}
+                </p>
 
-              <div class="grid grid-cols-2 gap-2 text-sm mb-4">
-                <div class="rounded-xl bg-gray-50 px-3 py-2">
-                  <p class="text-gray-400 text-xs">kWh tháng này</p>
-                  <p class="font-semibold text-gray-800">
-                    {{ formatNumber(room.currentKwh) }}
-                  </p>
+                <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+                  <div class="rounded-xl bg-gray-50 px-3 py-2">
+                    <p class="text-gray-400 text-xs">kWh tháng này</p>
+                    <p class="font-semibold text-gray-800">
+                      {{ formatNumber(room.currentKwh) }}
+                    </p>
+                  </div>
+                  <div class="rounded-xl bg-gray-50 px-3 py-2">
+                    <p class="text-gray-400 text-xs">Chi phí</p>
+                    <p class="font-semibold text-gray-800">
+                      {{ formatMoney(room.currentCost) }}
+                    </p>
+                  </div>
                 </div>
-                <div class="rounded-xl bg-gray-50 px-3 py-2">
-                  <p class="text-gray-400 text-xs">Chi phí</p>
-                  <p class="font-semibold text-gray-800">
-                    {{ formatMoney(room.currentCost) }}
-                  </p>
-                </div>
-              </div>
 
-              <div
-                class="flex items-center justify-between text-sm text-gray-500"
-              >
-                <span>{{ formatArea(room.area) }}</span>
-              </div>
-            </button>
+                <div
+                  class="flex items-center justify-between text-sm text-gray-500"
+                >
+                  <span>{{ formatArea(room.area) }}</span>
+                </div>
+              </button>
+            </div>
           </div>
 
           <div
@@ -510,6 +708,89 @@ onMounted(async () => {
                 :disabled="submitting"
               >
                 {{ submitting ? "Đang lưu..." : "Lưu phòng" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="showEditModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 backdrop-blur-sm px-4"
+        @click.self="closeEditModal"
+      >
+        <div
+          class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div
+            class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50"
+          >
+            <h3 class="font-bold text-lg text-gray-800">Sửa thông tin phòng</h3>
+            <button
+              @click="closeEditModal"
+              class="text-gray-400 hover:text-gray-600 bg-white p-1 rounded-full shadow-sm"
+            >
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="submitEditRoom" class="p-5 space-y-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1"
+                >Tên phòng</label
+              >
+              <input
+                v-model="roomForm.roomName"
+                type="text"
+                required
+                placeholder="VD: Phòng khách"
+                class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1"
+                  >Loại phòng</label
+                >
+                <input
+                  v-model="roomForm.roomType"
+                  type="text"
+                  placeholder="VD: Living room"
+                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1"
+                  >Diện tích</label
+                >
+                <input
+                  v-model="roomForm.area"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  placeholder="m²"
+                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div class="flex space-x-2.5 pt-1">
+              <button
+                type="button"
+                @click="closeEditModal"
+                class="flex-1 px-3 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="flex-1 px-3 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md"
+                :disabled="submitting"
+              >
+                {{ submitting ? "Đang lưu..." : "Cập nhật" }}
               </button>
             </div>
           </form>

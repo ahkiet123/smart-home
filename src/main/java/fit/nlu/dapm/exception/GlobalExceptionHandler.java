@@ -1,5 +1,10 @@
 package fit.nlu.dapm.exception;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -7,29 +12,19 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntime(RuntimeException ex) {
-
-        String message;
-
-        switch (ex.getMessage()) {
-            case "EMAIL_NOT_FOUND":
-                message = "Email chưa đăng ký";
-                break;
-            case "INVALID_PASSWORD":
-                message = "Mật khẩu không đúng";
-                break;
-            default:
-                message = "Đăng nhập thất bại";
-        }
+        String rawMessage = ex.getMessage();
+        String message = switch (rawMessage == null ? "" : rawMessage) {
+            case "EMAIL_NOT_FOUND" -> "Email chưa đăng ký";
+            case "INVALID_PASSWORD" -> "Mật khẩu không đúng";
+            default -> (rawMessage != null && !rawMessage.isBlank())
+                    ? rawMessage
+                    : "Có lỗi xảy ra";
+        };
 
         return ResponseEntity
                 .badRequest()
