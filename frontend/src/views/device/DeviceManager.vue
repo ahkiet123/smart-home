@@ -782,7 +782,15 @@ function closeAddModal() {
 }
 
 async function submitAddDevice() {
-  if (!newDevice.value.name || !newDevice.value.powerW) return;
+  if (!newDevice.value.name || !newDevice.value.powerW) {
+    alert("Vui lòng nhập tên thiết bị và công suất.");
+    return;
+  }
+
+  if (!newDevice.value.room || !newDevice.value.type) {
+    alert("Vui lòng chọn phòng và loại thiết bị.");
+    return;
+  }
 
   try {
     const token = localStorage.getItem("token");
@@ -804,17 +812,25 @@ async function submitAddDevice() {
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      console.error("Backend error: ", text);
-      throw new Error("Thêm thiết bị thất bại");
+      const rawText = await res.text();
+      let errData = null;
+      try {
+        errData = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        errData = null;
+      }
+      const message = errData?.message || rawText || "Thêm thiết bị thất bại";
+      console.error("Backend error: ", errData || rawText);
+      throw new Error(message);
     }
     await res.json();
 
     await loadDevices();
     closeAddModal();
+    alert("Đã thêm thiết bị mới.");
   } catch (err) {
     console.error(err);
-    alert("Thêm thiết bị lỗi!");
+    alert(err.message || "Thêm thiết bị lỗi!");
   }
 }
 

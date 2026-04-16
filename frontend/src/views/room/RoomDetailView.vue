@@ -477,14 +477,21 @@ onMounted(async () => {
           Phòng ốc
         </RouterLink>
         <RouterLink
-          to="/home"
+          to="/home?tab=energy-page"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="activity" class="mr-3 w-5 h-5"></i>
           Thống kê điện
         </RouterLink>
         <RouterLink
-          to="/home"
+          to="/calculator"
+          class="flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-xl font-medium transition-colors"
+        >
+          <i data-lucide="calculator" class="mr-3 w-5 h-5"></i>
+          Máy tính điện
+        </RouterLink>
+        <RouterLink
+          to="/home?tab=profile-page"
           class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors"
         >
           <i data-lucide="user" class="mr-3 w-5 h-5"></i>
